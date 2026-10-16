@@ -1,17 +1,12 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { state, touch, addFile, removeFile } from '../store'
 import { vim, setVimMode, onFieldKeydown, autoResize } from '../vim'
-import { slug } from '../output'
 
 const props = defineProps({ item: Object, field: Object, index: Number })
 const ta = ref(null)
 const fileDraft = ref('')
 
-const tagName = computed(() => {
-  const t = props.item.template
-  return t.startsWith('pe_') || ['promptology', 'general', 'dev'].includes(t) ? slug(props.field.label) : null
-})
 const files = computed(() => props.item.files[props.field.key] || [])
 const disp = fp => fp.startsWith(state.baseDir) ? fp.slice(state.baseDir.length).replace(/^\//, '') : fp
 
@@ -28,7 +23,17 @@ function onFileKey(e) {
   const raw = fileDraft.value.trim().replace(/,$/, '')
   if (raw) { addFile(props.field.key, raw); fileDraft.value = '' }
 }
-onMounted(() => autoResize(ta.value))
+// re-fit when the width changes (window resize, or mounted while the pane was hidden/narrow)
+let ro, lastW = -1
+onMounted(() => {
+  autoResize(ta.value)
+  ro = new ResizeObserver(([e]) => {
+    const w = Math.round(e.contentRect.width)
+    if (w !== lastW) { lastW = w; autoResize(ta.value) }
+  })
+  ro.observe(ta.value)
+})
+onBeforeUnmount(() => ro && ro.disconnect())
 </script>
 
 <template>
@@ -37,7 +42,6 @@ onMounted(() => autoResize(ta.value))
     'vim-visual': vim.fieldKey === field.key && vim.mode === 'visual' }">
     <div class="field-head">
       <div class="field-num">{{ index + 1 }}</div>
-      <div v-if="tagName" class="field-tag"><span class="ang">&lt;</span>{{ tagName }}<span class="ang">&gt;</span></div>
       <div class="field-name">{{ field.label }}</div>
       <div class="field-hint">{{ field.hint }}</div>
     </div>

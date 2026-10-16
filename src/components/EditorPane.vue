@@ -42,6 +42,7 @@ import { bridge, optimizeViaBridge, runViaBridge, onRunCfgChange } from '../brid
       <div id="actions">
         <button class="btn btn-primary" @click="copyPreview">Copy</button>
         <button class="btn btn-secondary" @click="saveMd">Save</button>
+        <template v-if="bridge.enabled">
         <button class="btn btn-secondary" id="btn-optimize" title="Optimize this draft in the live session"
                 :disabled="!bridge.up" @click="optimizeViaBridge">✦ Optimize</button>
         <button class="btn btn-secondary" id="btn-run" title="Run this draft in the live session"
@@ -56,6 +57,7 @@ import { bridge, optimizeViaBridge, runViaBridge, onRunCfgChange } from '../brid
         </select>
         <span id="bridge-dot" :class="{ up: bridge.up }"
               :title="bridge.up ? 'Bridge online — live session' : 'Bridge offline — open via bridge.js to run'">●</span>
+        </template>
         <div class="seg acid" id="fmt-seg" title="Context wrapping — how sections are wrapped for copy/paste">
           <button :class="{ on: state.fmt === 'xml' }" @click="state.fmt = 'xml'">&lt;XML&gt;</button>
           <button :class="{ on: state.fmt === 'md' }" @click="state.fmt = 'md'">MD</button>

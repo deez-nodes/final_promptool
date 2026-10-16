@@ -23,7 +23,7 @@ function grow() { const ci = input.value; ci.style.height = 'auto'; ci.style.hei
       <div id="preview-tabs">
         <button class="ptab" :class="{ active: state.preview === 'prompt' }" @click="state.preview = 'prompt'">Prompt</button>
         <button class="ptab" :class="{ active: state.preview === 'eval' }" @click="state.preview = 'eval'">Eval Stub</button>
-        <button class="ptab" :class="{ active: state.preview === 'chat' }" @click="state.preview = 'chat'">Chat</button>
+        <button v-if="bridge.enabled" class="ptab" :class="{ active: state.preview === 'chat' }" @click="state.preview = 'chat'">Chat</button>
       </div>
       <button class="ptab" style="color:var(--miku)" @click="copyPreview">Copy ⧉</button>
     </div>

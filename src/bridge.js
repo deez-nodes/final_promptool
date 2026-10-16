@@ -4,7 +4,9 @@ import { state, output, showToast } from './store'
 // ═══════════════ BRIDGE (one live claude session, piped) ═══════════════
 const BRIDGE_TOKEN = window.__PROMPTOR_TOKEN__ || null;   // present only when served by bridge.js
 let es=null;
+// Opt-in: editing never needs the bridge. Nothing connects until the user enables it.
 export const bridge = reactive({
+  enabled: localStorage.getItem('promptor_bridge')==='1',
   up:false, model:'sonnet', effort:'medium',
   msgs:[{role:'sys',text:'start the bridge, then Optimize ✦ or Run ▶'}],
 })
@@ -26,7 +28,12 @@ function openStream(){ if(es)es.close();
   es=new EventSource('/stream?t='+encodeURIComponent(BRIDGE_TOKEN));
   es.onmessage=e=>{ try{ handleEvent(JSON.parse(e.data)); }catch(_){} }; }
 
-export async function initBridge(){ if(!BRIDGE_TOKEN){ bridge.up=false; return; }
+export function setBridge(on){
+  bridge.enabled=on; localStorage.setItem('promptor_bridge',on?'1':'0');
+  if(on) initBridge();
+  else { if(es){es.close();es=null;} bridge.up=false; if(state.preview==='chat')state.preview='prompt'; }
+}
+export async function initBridge(){ if(!bridge.enabled)return; if(!BRIDGE_TOKEN){ bridge.up=false; return; }
   try{ const r=await fetch('/health'); if(!r.ok)throw 0; const h=await r.json();
     if(h&&h.ok){ bridge.up=true; if(h.effort&&EFFORTS.includes(h.effort))bridge.effort=h.effort; openStream(); }
     else bridge.up=false;
