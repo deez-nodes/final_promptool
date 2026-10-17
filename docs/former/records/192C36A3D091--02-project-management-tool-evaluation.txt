@@ -1,0 +1,33 @@
+Perspective
+Evaluate project-management tools through usability and individual workflow.
+
+Goal
+Find an application or service that is nicer to use than Linear for managing projects, tasks/issues, and related documents.
+
+Context
+My kanban boards grow enormous. Projects repeatedly split and recombine. Features get buried as subtasks. I may be making tasks too small, too large, or unfocused; I am unsure how much is workflow versus software.
+
+What “nicer” means
+- Low visual clutter; issues and uploaded documents easy to find again.
+- Useful color coding and obvious kanban states.
+- Clear separation of tasks, projects, and currently active projects; features stay visible.
+- Lightweight task capture and editing; GitHub’s large task/issue forms feel cumbersome.
+- Approachable organization like Notion or Obsidian, applied to project management.
+- Collaboration features unobtrusive or easy to hide.
+
+Prior experience
+- Linear: enough clutter that I repeatedly lose track of issues and documents.
+- Todoist: many usability problems; I have several videos, including a couple over an hour.
+- Any.do: highly frustrating; specific reasons not supplied.
+- Super Productivity: poor quality of life for me, especially Pomodoro/time-sprint logging, task/project separation, and kanban clarity.
+
+Task
+1. Briefly distinguish software friction from possible task/project-structure problems. Label inferences.
+2. Research up to three strong alternatives against the criteria above. Check current official features and recent UI screenshots or demos; link sources. Flag unknowns, including platform or budget limits.
+3. Pick the strongest fit; state its main drawback. If nothing fits well, say so.
+
+Output
+Short diagnosis; compact comparison table; best match and tradeoff. Plain language, short phrases. No long product catalog.
+
+Later phase
+My videos are not attached here. If I provide them, review them separately to refine the diagnosis.

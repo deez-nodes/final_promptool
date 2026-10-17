@@ -1,0 +1,63 @@
+Build a minimal local live component editor for prototyping the visual design of my prompt IDE.
+
+## Context and purpose
+
+Use the attached `themed-prompt-editor.html` as the starting reference. Inspect its code and rendered interface before making changes.
+
+The intended product is a local desktop prompt IDE. The attached HTML is one prototype, not a settled design or a commitment to browser-tab delivery.
+
+My main difficulty is getting AI-generated interfaces to look right. Give me direct visual control so I can refine the design myself.
+
+This task authorizes implementation. Keep the prototype small and finish a usable result.
+
+## Technology and scope
+
+Use Vue, TypeScript, and Vite with a minimal Electron shell so it launches in its own desktop window. If an existing project already provides an appropriate stack or desktop shell, reuse it.
+
+Use real reusable components for the preview. Keep desktop integration minimal. No accounts, cloud services, model calls, database, or production IDE features.
+
+Preserve the reference file as a baseline.
+
+## Essential interaction
+
+Provide a large preview of the prompt interface and a compact property inspector.
+
+In selection mode, clicking a component selects it and displays its editable properties. In interaction mode, the preview behaves normally.
+
+Start with the sidebar, toolbar, prompt section, buttons, and editor surface. Allow previewing a selected component alone or within the complete interface.
+
+Expose a small, useful set of controls:
+- Background, text, border, accent, and selection colors.
+- Font family, size, weight, and line height.
+- Padding, gap, border radius, and relevant dimensions.
+- Normal, hover, selected, and focus states where applicable.
+
+Changes must appear immediately without losing selection or sample text. Clearly distinguish shared theme changes from component-specific overrides.
+
+## Design and persistence
+
+Start with a faithful version of the reference, including its light and dark themes. Use realistic editable prompt content.
+
+Centralize editable design values in a typed schema. Derive Monaco’s theme from the same values if Monaco is retained.
+
+Keep the editor’s own controls visually separate from the preview being edited.
+
+Support reset, saving named local presets, and importing/exporting presets as JSON. Export usable CSS variables and component overrides so the design can be carried into the eventual app.
+
+Keep layout editing to straightforward controls; do not build a general-purpose visual website builder.
+
+## Delegation
+
+You, Astra, own the architecture, visual coherence, integration, and final review.
+
+Delegate bounded mechanical work to subagents when it saves time: extracting existing theme values, implementing preset persistence, repetitive component extraction, or checking interactions.
+
+Give each subagent explicit inputs, expected outputs, and separate file ownership. Establish shared interfaces first. Keep overall design decisions with the lead agent and inspect delegated work before accepting it.
+
+## Completion criteria
+
+Launch the desktop prototype and inspect its rendered interface. Verify selection, live changes, theme switching, reset, and preset persistence after restarting. Confirm exported presets can be imported successfully.
+
+Check clipping, text readability, alignment, and keyboard focus. A successful build alone is not visual verification.
+
+Make reasonable reversible decisions without stopping for routine approval. Keep updates brief. Finish with launch instructions, what works, and any remaining limitations.

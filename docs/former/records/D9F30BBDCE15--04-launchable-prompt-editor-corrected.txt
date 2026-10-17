@@ -1,0 +1,121 @@
+<context>
+My previous message was sent before I finished supplying context.
+Use this complete brief.
+
+Continue the existing project. Preserve completed work.
+Repository: [path]
+Visual reference: [attach referenced image]
+</context>
+
+<goal>
+Deliver a working prompt editor that opens with one action.
+
+Prefer no server requirement. An app executable or shortcut that
+automatically starts everything it needs is acceptable.
+
+No manual terminal commands or server startup on each launch.
+A dependable, launchable version is the urgent priority.
+</goal>
+
+<scope>
+Complete the prompt editor and its existing task, prompt, context,
+and response-template features.
+
+Provide room for future task/project tools inspired by Todoist
+and Linear. Building full clones is a separate phase.
+
+Collaboration features should not occupy the interface.
+</scope>
+
+<checkpoint>
+Before implementation:
+1. Inspect the repository, current branch, and uncommitted work.
+2. Commit the outstanding project work as a recovery checkpoint.
+3. Record its commit hash.
+4. Create a working branch from that checkpoint and switch to it.
+
+Do not restart the project from scratch.
+If functionality regresses, restore the verified checkpoint
+before continuing. Do not build further on a regression.
+</checkpoint>
+
+<documentation>
+1. Retrieve the official Nuxt llms.txt from https://nuxt.com/.
+2. Verify Nuxt 4.6 availability and Nuxt UI compatibility.
+   Flag conflicts; do not silently substitute versions.
+3. Identify the exact Nuxt skill/package intended by “npm skill.”
+   Check whether it is installed. If missing, install it globally
+   from its authoritative source.
+4. Read the relevant framework and component documentation
+   before choosing implementation methods.
+</documentation>
+
+<architecture>
+- Use Nuxt 4.6 and Nuxt UI.
+- Prefer documented framework components, editor extensions,
+  and built-in theming mechanisms.
+- Use CSS Modules for application-authored styles.
+  Any application-authored Tailwind styling must go through
+  CSS Modules. Use Vue templates for markup.
+- Keep styling out of component markup.
+- No inline styles or Tailwind utility-class chains in tags.
+- Use descriptive CSS Module classes.
+- If using Tailwind, apply it within CSS Modules.
+- Use the framework's built-in components and theming mechanisms.
+- Ordinary text and labels may remain inline.
+- Use pure functions and presentational components.
+- Parent containers own state, persistence, and orchestration.
+  Child components receive state and emit actions.
+- Use readable names, focused responsibilities, and small interfaces.
+  Avoid excessive parameters, nesting, and dense component markup.
+- Make code understandable without explanatory clutter.
+  Comments must not compensate for confusing design.
+- Use supported libraries for standard behavior.
+  Do not hand-roll Markdown parsing or standard editor controls.
+</architecture>
+
+<working_method>
+Edit one file at a time.
+
+Verify the current file before editing another.
+Use the smallest meaningful check for that change.
+If verification depends on another file, identify the dependency
+and the verification limitation explicitly.
+
+Keep verification focused: approximately 10–20 meaningful checks
+for the complete workflow, not hundreds of superficial tests.
+</working_method>
+
+<acceptance>
+The working version must demonstrate:
+
+1. App opens through its executable or shortcut without manual
+   server startup.
+2. Panel items open the correct content.
+3. Whole prompts save and reload.
+4. Individual contexts save and reload independently.
+5. Inline Markdown uses the editor's supported implementation.
+6. Panels resize through documented Nuxt UI components.
+   No arbitrary application-imposed resizing limits.
+   Identify any actual framework limits.
+7. Tasks, prompts, and response templates exist and load.
+8. Add-new actions exist at prompt and section level.
+   Sections support drag/reorder through supported editor features.
+9. Editor and side panes use the available space.
+   Remove large unused side margins.
+   Resizing must not force text into unusably narrow columns.
+10. Visual hierarchy, labels, and priority/status colors are clear.
+    Aim for polished, readable organization like Trello.
+    Avoid excessive nesting and intrusive collaboration controls.
+</acceptance>
+
+<delivery>
+Finish with:
+- Checkpoint commit and working branch.
+- How to launch the app.
+- What works.
+- Checks performed and results.
+- Remaining gaps, if any.
+
+Keep the report brief. Deliver the working application.
+</delivery>

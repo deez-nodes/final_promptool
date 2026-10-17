@@ -1,0 +1,19 @@
+**JSON**
+
+```json
+{
+  "understanding": "Build a React presentation and survey prototype, with one page per supplied design. Prioritize clean, reusable components and code organization over completing the product.",
+  "needed": "Should I use the two HTML prototypes already discussed, or separate screenshots? No screenshots are attached or visible in this turn."
+}
+```
+
+**XML**
+
+```xml
+<request>
+  <goal>React presentation and survey prototype</goal>
+  <structure>One page per design; reusable components</structure>
+  <priority>Code organization over product completion</priority>
+  <clarification>Use the two existing HTML prototypes, or attach the intended screenshots?</clarification>
+</request>
+```

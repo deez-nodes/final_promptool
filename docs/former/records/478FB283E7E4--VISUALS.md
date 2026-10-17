@@ -1,0 +1,13 @@
+# 07 · Visual transcription (Claude's description; visible text quoted)
+
+## prompttor-studio_left-pane-dropdowns_with-comments.png
+- Browser address `C:/Minty/Examples_promptor/prompttor_desktop_prompt_studio.html`; tabs include TradeSlayer, prompTOR // rich, PromptTOR Stu…, PromptTOR · Edito…, PromptTOR — Your.
+- Header: traffic-light dots, "PROMPTTOR [STUDIO]", segmented "Base prompt | Mid-task reply" (Mid-task active), telemetry "Est: ~184 toks | 701 chars | $0.00055 / run", format XML | MD | JSON, "Copy Prompt Ctrl+↵".
+- **Left pane (high-priority interaction per user):** "LIBRARY [+ New Prompt]". Three stacked independent panels, each = category `<select>` + "Search this library…" + results:
+  - Panel 1 "Full prompts": Full-Stack Software Architect (Base prompt), Mid-Task Iteration Reply (Mid-task reply).
+  - Panel 2 dropdown OPEN, options: Full prompts, **Agreements** (selected), Contexts, Personas, Stacks, Instructions, Constraints, Output formats, In response to, Proposed edits, Questions, Parameters, All sections.
+  - Panel 3 "Contexts": "+ Contexts — Add an empty section", "Reference Spec — Reference implementation located in src/platform/desktop/hotkey.rs".
+  - Footer "Hotkey Overlay ⌥ Space".
+- Center title "Mid-Task Iteration Reply" [ACTIVE TEMPLATE], "☑ Interpolate {{vars}}", "+ Add Section".
+- "❝ Their reply — PASTE HERE TO QUOTE & REFERENCE — Reference Only" box containing the user's competitor commentary (transcribed verbatim in `05_competitor-and-market-references/README.md`), ending with: "--- At this point in time, even if it requires multiple agents. This conversation needs to be ripped apart for all pseudo marketing role play, and most importantly all scattered references to features. Features include: on the spot ideas / anything I said was intended / anything I mentioned was a part of the original vision / adjacent features like the optimizer website already planned via the bridge. / task tracking done via game like isometric interface (swarmittyville, which I think works btw. Testing required.)"
+- Sections below: Task Continuation (red) "This continues the same task. Read this whole message before acting. It is not time to build yet."; In Response To (cyan) 01 "The red upload highlight is a client-side hard wall: chat interfaces block raw video containers (.mp4, .mov) or exceed file size."; Agreements (green) 01 "Treat each point as settled." 02 "Adopt terminal-grade dark matte palette instead of tinted translucent backgrounds."; Proposed Edits (amber) 01 "Still-Frame Step Sequence for timeline breakdown." Each section has ▲ ▼ ×, "+ Add Point". Footer "Save Preset", reset ↺.

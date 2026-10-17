@@ -1,0 +1,110 @@
+<mode>
+Product documentation and evidence-based market research.
+Prepare for a production build; do not begin implementation yet.
+</mode>
+
+<role>
+Act as the product research lead. Delegate bounded research work
+to agents, then verify and synthesize their findings.
+</role>
+
+<goal>
+Organize the existing product knowledge and determine whether a
+specific group of people will pay for Promptor's actual workflow:
+fast prompting and reprompting, reusable context, context isolation,
+and deliberate interaction with models throughout long conversations.
+</goal>
+
+<context>
+I initially imagined roughly 35 customers. I have since seen related
+products advertising around 20,000 users. Treat those figures as
+unverified leads, not evidence of paying customers.
+
+I have used or tried Obsidian, VS Code, Zettr, Joblin, Todoist, and
+templates. Their existence alone does not establish that they meet
+this need efficiently.
+
+My evidence includes Claude, Gemini, and GPT conversations and videos
+showing workflow speed differences. I am also collecting outputs where
+inputs assembled with my tool appear to restore response quality deep
+into a conversation. Treat these as observations to examine, not
+established causal effects.
+</context>
+
+<phase_1_product_context>
+1. Review the project files, prototypes, feature plans, ideas, and
+   reference materials. Understand the application flow and feel.
+2. Locate and read the previous chat's handoff or compaction summary.
+   Recover relevant source context where available; flag gaps.
+3. Fetch and read the artifact pitch:
+   https://claude.ai/artifact/G4CcgxGCUu8rdivC99fYbo
+   If inaccessible, report that limitation and continue with available
+   material. Do not reconstruct its claims from assumptions.
+4. Extract the pitch's propositions into a claim list.
+5. Consolidate the product information into a clear source of truth:
+   intended users, problems, workflows, requirements, prototype
+   coverage, design decisions, unresolved questions, and build scope.
+6. Distinguish settled decisions, proposals, observed functionality,
+   and untested claims. Preserve source links and original materials.
+   Review the organization once more for omissions and contradictions.
+</phase_1_product_context>
+
+<phase_2_agent_research>
+Give each agent the shared product brief and bounded questions:
+
+- Market evidence: identify direct and adjacent products, including
+  Chrome/Google extensions, Android apps, and relevant Wispr features.
+  Verify product identities and their actual relationship to Promptor.
+- Customer needs: investigate recurring unmet needs, friction,
+  abandonment, cancellation, and switching reasons.
+- Commercial evidence: investigate pricing, purchases, paying
+  subscribers, conversion, retention, and revenue where available.
+- Workflow comparison: assess specialized products and general tools
+  against Promptor's intended workflow and the supplied demonstrations.
+
+Require sources and uncertainty labels. Check important claims yourself,
+resolve disagreements, and combine the findings into one assessment.
+Test and expand the pitch's propositions; do not merely confirm them.
+</phase_2_agent_research>
+
+<research_questions>
+- Who experiences this problem often enough to consider paying?
+- What do existing customers value, request, or find missing?
+- What documented shortcomings caused people to leave or cancel?
+- Why do these gaps persist: technical limits, product priorities,
+  economics, discoverability, or something else?
+- How many customers demonstrably paid, and at what price?
+- Which gap could support an initial niche of roughly 35 paying users?
+</research_questions>
+
+<evidence_rules>
+- Use current sources. Record dates, links, and what each supports.
+- Separate downloads, installs, registered users, active users,
+  paying customers, and revenue. Never substitute one for another.
+- Distinguish independently supported facts, vendor claims,
+  individual reports, estimates, and unknowns.
+- Pricing proves an offer exists; it does not prove purchases.
+  Report unavailable payment or retention data plainly.
+- Treat firsthand complaints as qualitative evidence. Do not infer
+  churn from dissatisfaction alone or market prevalence from a few posts.
+- Evaluate "just use Obsidian or VS Code" through demonstrated workflows:
+  setup effort, steps, time, repeated use, scale, context isolation,
+  context reuse, and output quality. Accept strong evidence either way.
+- Examine my demonstrations critically. Separate interface speed gains
+  from prompt-content differences, model variation, and context effects.
+  Identify the smallest useful comparison where evidence is missing.
+</evidence_rules>
+
+<deliverables>
+1. Organized product documentation with an index and unresolved decisions.
+2. Pitch-claim assessment: supported, contradicted, or unresolved,
+   with evidence and implications.
+3. Compact competitor table covering workflow fit, price, adoption
+   metric, payment evidence, customer complaints, and evidence quality.
+4. A recommendation identifying the most plausible initial customer,
+   valuable differentiation, willingness-to-pay evidence, and remaining
+   assumptions to test before a production commitment.
+
+Lead with findings. Keep the main report concise; place detailed
+sources and research notes in supporting files.
+</deliverables>
