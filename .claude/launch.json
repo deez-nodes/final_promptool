@@ -4,7 +4,7 @@
     {
       "name": "promptor",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["--prefix", "versions/vue-port", "run", "dev"],
       "port": 5173
     }
   ]
