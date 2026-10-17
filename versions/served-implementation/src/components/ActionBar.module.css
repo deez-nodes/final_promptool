@@ -1,0 +1,15 @@
+.bar {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: safe center;
+  gap: 0.5rem;
+  inline-size: 100%;
+}
+.spacer {
+  flex: 1;
+}
+.count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--t-fg-3);
+}

@@ -1,0 +1,76 @@
+.writing {
+  min-height: 3.5rem;
+}
+.writing :global(.cm-editor) {
+  font-family: var(--font-prose);
+  font-size: var(--fs-prose);
+  font-variation-settings: "opsz" 17;
+  background: transparent;
+  color: var(--t-fg);
+}
+.writing :global(.cm-editor.cm-focused) {
+  outline: none;
+}
+.writing :global(.cm-scroller) {
+  font-family: inherit;
+  line-height: var(--lh-prose);
+}
+.writing :global(.cm-content) {
+  padding: 0.25rem 0;
+  caret-color: var(--t-fg);
+}
+.writing :global(.cm-line) {
+  padding: 0 0.25rem;
+}
+.writing :global(.cm-gutters) {
+  background: transparent;
+  border: none;
+  color: var(--t-fg-3);
+}
+.writing :global(.cm-numbers) {
+  min-width: 2.4rem;
+}
+.writing :global(.cm-numbers .cm-gutterElement) {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  padding: 0 0.5rem 0 0;
+  text-align: right;
+  color: var(--hue, var(--t-fg-3));
+  line-height: calc(var(--lh-prose) * var(--fs-prose) / var(--fs-small));
+  transform: translateY(1px);
+}
+.writing :global(.cm-placeholder) {
+  color: var(--t-fg-3);
+  font-style: italic;
+}
+.writing :global(.cm-cursor) {
+  border-left-color: var(--t-fg);
+}
+.writing :global(.cm-selectionBackground),
+.writing :global(.cm-focused .cm-selectionBackground) {
+  background: color-mix(in oklch, var(--hue, var(--t-fg)) 25%, transparent) !important;
+}
+.writing :global(.cm-fat-cursor) {
+  background: var(--hue, var(--t-fg)) !important;
+  color: var(--t-bg) !important;
+}
+.writing :global(.cm-vim-panel) {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  padding: 0.15rem 0.5rem;
+  color: var(--t-fg-2);
+}
+
+/* Markdown, styled per element. */
+.writing :global(.cm-h1) { font-size: var(--fs-h1); font-weight: var(--h1-weight); line-height: 1.25; font-variation-settings: "opsz" 28; }
+.writing :global(.cm-h2) { font-size: var(--fs-h2); font-weight: var(--h2-weight); line-height: 1.3; font-variation-settings: "opsz" 22; }
+.writing :global(.cm-h3) { font-size: var(--fs-h3); font-weight: var(--h3-weight); line-height: 1.35; }
+.writing :global(.cm-h4) { font-weight: var(--h3-weight); }
+.writing :global(.cm-strong) { font-weight: var(--strong-weight); }
+.writing :global(.cm-em) { font-style: var(--em-style); }
+.writing :global(.cm-strike) { text-decoration: line-through; color: var(--t-fg-3); }
+.writing :global(.cm-code) { font-family: var(--font-mono); font-size: var(--fs-small); font-variation-settings: normal; background: var(--t-bg-3); padding: 0 0.2em; border-radius: 3px; }
+.writing :global(.cm-link) { color: var(--minty-blue); text-decoration: underline; }
+.writing :global(.cm-mark) { color: var(--t-fg-3); }
+.writing :global(.cm-quote) { border-left: 3px solid var(--hue, var(--t-line-2)); padding-left: 0.75rem !important; color: var(--t-fg-2); }
+.writing :global(.cm-done) { text-decoration: line-through; color: var(--t-fg-3); }

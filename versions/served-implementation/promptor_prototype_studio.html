@@ -1,0 +1,3186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptTOR // Prototype Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Orbitron:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ─────────────────────────────────────────────────────────────────────────────
+   CSS DESIGN TOKENS & THEMES
+───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --font-display: 'Orbitron', sans-serif;
+  --font-sub: 'Rajdhani', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+
+  /* Default Theme: Cyberpunk Neon */
+  --bg-root: #07080e;
+  --bg-surface: #0f1119;
+  --bg-surface-elevated: #161a26;
+  --bg-surface-active: #1f2533;
+  --bg-input: #0a0c15;
+  --border-subtle: #1c2233;
+  --border-strong: #2c364e;
+  --border-glow: rgba(57, 212, 200, 0.4);
+
+  --accent-acid: #e8ff47;
+  --accent-acid-dim: #262c0c;
+  --accent-cyan: #39d4c8;
+  --accent-cyan-dim: #0d3b39;
+  --accent-blue: #5cc8ff;
+  --accent-blue-dim: #0c2f47;
+  --accent-pink: #ff4da6;
+  --accent-pink-dim: #3d0e29;
+  --accent-purple: #b78aff;
+  --accent-green: #3cec85;
+  --accent-orange: #ff955c;
+
+  --text-main: #dfe6f0;
+  --text-muted: #54607a;
+  --text-secondary: #8b98b8;
+
+  --glow-acid: 0 0 14px rgba(232, 255, 71, 0.35);
+  --glow-cyan: 0 0 14px rgba(57, 212, 200, 0.35);
+  --glow-pink: 0 0 14px rgba(255, 77, 166, 0.35);
+  --header-height: 54px;
+}
+
+/* Theme Variant: Bearded Arc */
+[data-theme="arc"] {
+  --bg-root: #131822;
+  --bg-surface: #181f2c;
+  --bg-surface-elevated: #1c2433;
+  --bg-surface-active: #253043;
+  --bg-input: #11161f;
+  --border-subtle: #212a3b;
+  --border-strong: #3b4860;
+  --border-glow: rgba(105, 195, 255, 0.3);
+
+  --accent-acid: #eacd61;
+  --accent-acid-dim: #353018;
+  --accent-cyan: #22ecdb;
+  --accent-cyan-dim: #0a2d2a;
+  --accent-blue: #69c3ff;
+  --accent-blue-dim: #132b40;
+  --accent-pink: #f38cec;
+  --accent-pink-dim: #361434;
+  --accent-purple: #b78aff;
+  --accent-green: #3cec85;
+  --accent-orange: #ff955c;
+
+  --text-main: #d0d7e4;
+  --text-muted: #4a5e84;
+  --text-secondary: #8196b5;
+  --glow-acid: 0 0 12px rgba(234, 205, 97, 0.25);
+  --glow-cyan: 0 0 12px rgba(34, 236, 219, 0.25);
+  --glow-pink: 0 0 12px rgba(243, 140, 236, 0.25);
+}
+
+/* Theme Variant: Clean Slate */
+[data-theme="slate"] {
+  --bg-root: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-elevated: #334155;
+  --bg-surface-active: #475569;
+  --bg-input: #0b1120;
+  --border-subtle: #1e293b;
+  --border-strong: #475569;
+  --border-glow: rgba(56, 189, 248, 0.3);
+
+  --accent-acid: #38bdf8;
+  --accent-acid-dim: #082f49;
+  --accent-cyan: #2dd4bf;
+  --accent-cyan-dim: #134e4a;
+  --accent-blue: #60a5fa;
+  --accent-blue-dim: #1e3a8a;
+  --accent-pink: #f43f5e;
+  --accent-pink-dim: #4c0519;
+  --accent-purple: #a855f7;
+  --accent-green: #10b981;
+  --accent-orange: #f97316;
+
+  --text-main: #f1f5f9;
+  --text-muted: #64748b;
+  --text-secondary: #94a3b8;
+  --glow-acid: 0 0 12px rgba(56, 189, 248, 0.25);
+  --glow-cyan: 0 0 12px rgba(45, 212, 191, 0.25);
+  --glow-pink: 0 0 12px rgba(244, 63, 94, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-mono);
+  background-color: var(--bg-root);
+  color: var(--text-main);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  line-height: 1.5;
+  background-image:
+    radial-gradient(1200px 700px at 15% -10%, rgba(232, 255, 71, 0.05), transparent 60%),
+    radial-gradient(1000px 700px at 85% 10%, rgba(57, 212, 200, 0.05), transparent 55%),
+    radial-gradient(900px 800px at 50% 110%, rgba(255, 77, 166, 0.04), transparent 60%);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   GLOBAL STUDIO HEADER & ARTIFACT SWITCHER
+───────────────────────────────────────────────────────────────────────────── */
+#studio-header {
+  height: var(--header-height);
+  background: linear-gradient(180deg, var(--bg-surface), var(--bg-root));
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 0.16em;
+  color: var(--accent-acid);
+  text-shadow: var(--glow-acid);
+  text-transform: uppercase;
+}
+.brand-title b {
+  color: var(--accent-cyan);
+  text-shadow: var(--glow-cyan);
+}
+.brand-tag {
+  font-family: var(--font-sub);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 2px 7px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+}
+
+/* Prototype Switcher Tabs */
+#prototype-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 3px;
+  margin-left: 10px;
+}
+.proto-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.proto-tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.04);
+}
+.proto-tab.active {
+  background: var(--bg-surface-elevated);
+  color: var(--accent-acid);
+  box-shadow: inset 0 0 0 1px var(--accent-acid-dim), var(--glow-acid);
+}
+.proto-tab .pill-num {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--bg-surface-active);
+  color: var(--accent-cyan);
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+/* Theme picker & utilities */
+.studio-utils {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.select-theme {
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 5px 9px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+}
+.select-theme:focus {
+  border-color: var(--accent-cyan);
+}
+.btn-doc-link {
+  background: var(--accent-cyan-dim);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-family: var(--font-sub);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.15s ease;
+}
+.btn-doc-link:hover {
+  background: var(--accent-cyan);
+  color: #07080e;
+  box-shadow: var(--glow-cyan);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   STAGE CONTAINER
+───────────────────────────────────────────────────────────────────────────── */
+#studio-stage {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.prototype-view {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-root);
+}
+.prototype-view.active {
+  display: flex;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 1: CYBERPUNK WORKBENCH (Evolution of promptor_bridged / mantine)
+───────────────────────────────────────────────────────────────────────────── */
+.cp-workbench {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.cp-sidebar {
+  width: 270px;
+  background: linear-gradient(180deg, var(--bg-surface), var(--bg-root));
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.cp-side-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cp-side-title {
+  font-family: var(--font-sub);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+}
+.cp-mode-toggles {
+  display: flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 2px;
+}
+.cp-mode-btn {
+  background: none;
+  border: none;
+  padding: 3px 8px;
+  font-family: var(--font-sub);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.cp-mode-btn.active {
+  background: var(--bg-surface-elevated);
+  color: var(--accent-acid);
+}
+
+.cp-items-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cp-item-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+.cp-item-card:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-strong);
+}
+.cp-item-card.active {
+  background: var(--bg-surface-elevated);
+  border-color: var(--accent-acid);
+  box-shadow: inset 0 0 0 1px var(--accent-acid-dim), var(--glow-acid);
+}
+.cp-item-name {
+  font-family: var(--font-sub);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cp-item-card.active .cp-item-name {
+  color: var(--accent-acid);
+}
+.cp-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+.badge {
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.badge-prompt { background: var(--accent-acid-dim); color: var(--accent-acid); }
+.badge-task { background: var(--accent-blue-dim); color: var(--accent-blue); }
+.badge-pe { background: var(--accent-cyan-dim); color: var(--accent-cyan); }
+.badge-done { background: #11331f; color: var(--accent-green); }
+
+.cp-side-footer {
+  padding: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+.btn-new-item {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-family: var(--font-sub);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.btn-new-item:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: var(--glow-cyan);
+}
+
+/* Center Editor */
+.cp-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-root);
+}
+.cp-center-topbar {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+}
+.cp-title-input {
+  flex: 1;
+  background: none;
+  border: none;
+  font-family: var(--font-sub);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  color: var(--text-main);
+  outline: none;
+}
+.cp-title-input:focus {
+  color: var(--accent-acid);
+}
+.cp-select {
+  background: var(--bg-surface-elevated);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+}
+.cp-select:focus {
+  border-color: var(--accent-cyan);
+}
+
+/* Dynamic Section Fields */
+.cp-sections-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cp-field-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cp-field-box:focus-within {
+  border-color: var(--accent-acid);
+  box-shadow: var(--glow-acid);
+}
+.cp-field-head {
+  padding: 8px 12px;
+  background: var(--bg-surface-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cp-field-num {
+  width: 20px;
+  height: 20px;
+  background: var(--accent-acid-dim);
+  color: var(--accent-acid);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+.cp-field-tag {
+  font-size: 11px;
+  color: var(--accent-cyan);
+}
+.cp-field-label {
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-acid);
+}
+.cp-field-hint {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.cp-file-row {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  background: var(--bg-input);
+}
+.file-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-blue-dim);
+  border: 1px solid rgba(92, 200, 255, 0.3);
+  color: var(--accent-blue);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.file-pill-del {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+.file-pill-del:hover {
+  color: var(--accent-pink);
+}
+.cp-textarea {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 12px;
+  resize: vertical;
+  min-height: 75px;
+  outline: none;
+}
+.cp-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Guideline block toggle pills */
+.cp-blocks-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.cp-blocks-label {
+  font-family: var(--font-sub);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.cp-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.block-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.12s ease;
+}
+.block-chip:hover {
+  border-color: var(--border-strong);
+  color: var(--text-main);
+}
+.block-chip.active {
+  background: var(--accent-cyan-dim);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: var(--glow-cyan);
+}
+.block-chip .chip-box {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--text-muted);
+  border-radius: 2px;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+}
+.block-chip.active .chip-box {
+  background: var(--accent-cyan);
+  color: var(--bg-root);
+  border-color: var(--accent-cyan);
+}
+
+/* Action Bar & Vim HUD */
+.cp-actionbar {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-action {
+  padding: 7px 14px;
+  border-radius: 5px;
+  border: none;
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.btn-action-primary {
+  background: var(--accent-acid);
+  color: #07080e;
+  box-shadow: var(--glow-acid);
+}
+.btn-action-primary:hover {
+  background: #f2ff7a;
+}
+.btn-action-sec {
+  background: var(--bg-surface-elevated);
+  color: var(--text-main);
+  border: 1px solid var(--border-strong);
+}
+.btn-action-sec:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.btn-action-run {
+  background: var(--accent-cyan-dim);
+  color: var(--accent-cyan);
+  border: 1px solid var(--accent-cyan);
+}
+.btn-action-run:hover {
+  background: var(--accent-cyan);
+  color: #07080e;
+  box-shadow: var(--glow-cyan);
+}
+
+.seg-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.seg-btn {
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  border: none;
+  padding: 6px 11px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: 0.12s;
+}
+.seg-btn.active {
+  background: var(--accent-cyan-dim);
+  color: var(--accent-cyan);
+}
+
+/* Vim HUD */
+.vim-hud-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.vim-badge {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  padding: 3px 9px;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+}
+.vim-normal { background: var(--accent-acid-dim); color: var(--accent-acid); box-shadow: var(--glow-acid); }
+.vim-insert { background: var(--accent-cyan-dim); color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+.vim-visual { background: var(--accent-pink-dim); color: var(--accent-pink); box-shadow: var(--glow-pink); }
+.vim-hint-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.btn-vim-help {
+  background: none;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.btn-vim-help:hover {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+/* Right Output / Runner Panel */
+.cp-right-panel {
+  width: 420px;
+  background: var(--bg-input);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.cp-right-header {
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cp-right-tabs {
+  display: flex;
+  gap: 3px;
+}
+.tab-right-btn {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  font-family: var(--font-sub);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.tab-right-btn.active {
+  background: var(--bg-surface-elevated);
+  color: var(--accent-acid);
+  box-shadow: var(--glow-acid);
+}
+.cp-preview-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.cp-preview-tag { color: var(--accent-cyan); font-weight: 600; }
+.cp-preview-head { color: var(--accent-acid); font-weight: 700; }
+.cp-preview-body { color: var(--text-main); }
+
+/* Chat runner stream */
+.cp-chat-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.cp-chat-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chat-msg {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 90%;
+  word-break: break-word;
+}
+.chat-msg.user {
+  align-self: flex-end;
+  background: var(--accent-acid-dim);
+  color: var(--accent-acid);
+  border: 1px solid rgba(232, 255, 71, 0.3);
+}
+.chat-msg.model {
+  align-self: flex-start;
+  background: var(--bg-surface-elevated);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+.chat-msg.system {
+  align-self: center;
+  background: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 2: CONVERSATION CARDS & REPLY-TO-KANBAN (Vue 3 / Nuxt UI)
+───────────────────────────────────────────────────────────────────────────── */
+.cards-kanban-root {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.conv-sidebar {
+  width: 250px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+.conv-side-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.conv-thread-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.conv-doc-pill {
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-elevated);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: 0.15s ease;
+}
+.conv-doc-pill:hover {
+  border-color: var(--border-strong);
+}
+.conv-doc-pill.active {
+  border-color: var(--accent-cyan);
+  background: var(--bg-surface-active);
+}
+.conv-doc-type {
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.doc-type-prompt { color: var(--accent-acid); }
+.doc-type-reply { color: var(--accent-pink); }
+
+/* Center Cards Column */
+.conv-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-root);
+}
+.conv-center-header {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.conv-center-cards {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Semantic Section Card */
+.section-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--type-color, var(--accent-cyan));
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease;
+}
+.section-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.section-card.excluded {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+.card-header {
+  padding: 8px 14px;
+  background: var(--bg-surface-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-type-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--type-color, var(--accent-cyan));
+}
+.card-title-input {
+  font-family: var(--font-sub);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--type-color, var(--text-main));
+  background: none;
+  border: none;
+  outline: none;
+  flex: 1;
+}
+.card-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-btn {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+.card-btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.card-body-editor {
+  display: flex;
+  min-height: 80px;
+}
+.point-gutter {
+  width: 38px;
+  background: var(--bg-input);
+  border-right: 1px solid var(--border-subtle);
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  user-select: none;
+}
+.card-textarea {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.8;
+  padding: 10px 14px;
+  outline: none;
+  resize: vertical;
+}
+
+/* Kanban Board Column */
+.kanban-column-drawer {
+  width: 440px;
+  background: var(--bg-input);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.kanban-head {
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.kanban-lanes {
+  flex: 1;
+  overflow-x: auto;
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+}
+.kanban-lane {
+  flex: 1;
+  min-width: 120px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+.lane-title {
+  font-family: var(--font-sub);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.lane-cards {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kb-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px;
+  cursor: grab;
+  transition: all 0.15s ease;
+}
+.kb-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.kb-card-title {
+  font-family: var(--font-sub);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.kb-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kb-check-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.kb-check-row input[type="checkbox"] {
+  accent-color: var(--accent-cyan);
+}
+.btn-extract-cards {
+  margin: 10px 14px;
+  padding: 8px;
+  background: var(--accent-acid-dim);
+  border: 1px dashed var(--accent-acid);
+  color: var(--accent-acid);
+  font-family: var(--font-sub);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-extract-cards:hover {
+  background: var(--accent-acid);
+  color: #07080e;
+  box-shadow: var(--glow-acid);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 3: EXPERIMENT BENCH & TOKEN WEIGHT (Spec B)
+───────────────────────────────────────────────────────────────────────────── */
+.bench-root {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.bench-doc-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px 36px;
+  background: var(--bg-root);
+}
+.bench-doc-title {
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.bench-section-block {
+  margin-bottom: 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.bench-section-bar {
+  padding: 8px 14px;
+  background: var(--bg-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bench-heading {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent-cyan);
+}
+.bench-weight-meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.weight-bar-outer {
+  width: 90px;
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.weight-bar-fill {
+  height: 100%;
+  background: var(--accent-acid);
+}
+.weight-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.bench-notebook-pane {
+  width: 440px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+.bench-tabs-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 4px;
+}
+.bench-tab-btn {
+  background: none;
+  border: none;
+  padding: 5px 12px;
+  font-family: var(--font-sub);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.bench-tab-btn.active {
+  background: var(--bg-surface-elevated);
+  color: var(--accent-acid);
+  box-shadow: var(--glow-acid);
+}
+.bench-tab-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Versions list */
+.version-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.version-card:hover {
+  border-color: var(--border-strong);
+}
+.version-card.selected {
+  border-color: var(--accent-cyan);
+  box-shadow: var(--glow-cyan);
+}
+.version-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.ver-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+.ver-time {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.ver-note {
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+/* Diff view */
+.diff-container {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px;
+}
+.diff-line {
+  padding: 1px 4px;
+  white-space: pre-wrap;
+}
+.diff-add {
+  background: rgba(60, 236, 133, 0.15);
+  color: #3cec85;
+}
+.diff-del {
+  background: rgba(227, 85, 53, 0.15);
+  color: #e35535;
+}
+
+/* Runs log */
+.run-item {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.run-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.run-model {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-acid);
+}
+.verdict-pills {
+  display: flex;
+  gap: 4px;
+}
+.verdict-pill {
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.verdict-worked {
+  background: #11331f;
+  color: var(--accent-green);
+  border-color: rgba(60, 236, 133, 0.3);
+}
+.verdict-didnt {
+  background: #331118;
+  color: #ff5c77;
+  border-color: rgba(255, 92, 119, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 4: UNIFIED FUSION WORKBENCH (Ultimate Synthesis)
+───────────────────────────────────────────────────────────────────────────── */
+.fusion-root {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Snippet Library Drawer */
+.fusion-lib-rail {
+  width: 280px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.fusion-lib-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fusion-search-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-main);
+  outline: none;
+  margin-top: 8px;
+}
+.fusion-search-input:focus {
+  border-color: var(--accent-cyan);
+}
+.fusion-lib-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.piece-group-title {
+  font-family: var(--font-sub);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.piece-chip {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: 0.15s ease;
+  margin-bottom: 4px;
+}
+.piece-chip:hover {
+  border-color: var(--accent-cyan);
+  background: var(--bg-surface-active);
+}
+.piece-chip .add-icon {
+  font-size: 14px;
+  color: var(--accent-cyan);
+}
+
+/* Center Canvas */
+.fusion-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-root);
+}
+.fusion-center-top {
+  padding: 12px 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fusion-canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 5: SUBAGENT CONTEXT UNITS & PRO REASONING PRESERVER
+───────────────────────────────────────────────────────────────────────────── */
+.subagents-root {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background: var(--bg-root);
+}
+.swp-left-pane {
+  width: 330px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 16px;
+}
+.swp-metrics-card {
+  background: linear-gradient(135deg, rgba(232, 255, 71, 0.08), rgba(57, 212, 200, 0.05));
+  border: 1px solid var(--accent-acid);
+  box-shadow: var(--glow-acid);
+  border-radius: 8px;
+  padding: 14px;
+}
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.metric-val-big {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent-acid);
+}
+.swp-center-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-root);
+}
+.swp-center-head {
+  padding: 12px 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.swp-packets-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.swp-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--accent-cyan);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.swp-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.swp-card.active {
+  border-color: var(--accent-cyan);
+  box-shadow: var(--glow-cyan);
+  background: var(--bg-surface-elevated);
+}
+.swp-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.swp-card-title {
+  font-family: var(--font-sub);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.swp-boundary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 10px 0;
+  font-size: 11px;
+}
+.swp-forbidden-box {
+  background: rgba(255, 77, 166, 0.08);
+  border: 1px solid rgba(255, 77, 166, 0.25);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--accent-pink);
+  margin-top: 6px;
+}
+.swp-right-pane {
+  width: 440px;
+  background: var(--bg-input);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.swp-right-head {
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.swp-output-view {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Zen Focus Keyboard Overlay */
+.zen-keyboard-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  background: rgba(7, 8, 14, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--accent-cyan);
+  box-shadow: 0 -10px 40px rgba(57, 212, 200, 0.15);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+.zen-keyboard-overlay.show {
+  display: flex;
+}
+.zen-hud-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent-cyan);
+  text-shadow: var(--glow-cyan);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.zen-keys-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.zen-key {
+  width: 42px;
+  height: 38px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: all 0.1s ease;
+  user-select: none;
+}
+.zen-key.active, .zen-key:hover {
+  background: var(--accent-cyan);
+  color: #07080e;
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-2px);
+}
+.btn-zen-close {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-family: var(--font-sub);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* Modal Cheatsheet */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 5, 9, 0.85);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+.modal-overlay.show {
+  display: flex;
+}
+.modal-window {
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-cyan);
+  border-radius: 10px;
+  box-shadow: var(--glow-cyan);
+  width: min(650px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+.modal-title {
+  font-family: var(--font-display);
+  color: var(--accent-cyan);
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.modal-grid .k { color: var(--accent-pink); font-weight: 700; }
+.modal-grid .d { color: var(--text-secondary); }
+
+/* Toast */
+#studio-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--accent-acid);
+  color: #07080e;
+  font-family: var(--font-sub);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  border-radius: 6px;
+  box-shadow: var(--glow-acid);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 400;
+}
+#studio-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body data-theme="cyber">
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     STUDIO TOPBAR (ARCHETYPE SWITCHER)
+───────────────────────────────────────────────────────────────────────── -->
+<header id="studio-header">
+  <div class="brand-badge">
+    <div class="brand-title">promp<b>TOR</b></div>
+    <div class="brand-tag">PROTOTYPE STUDIO</div>
+  </div>
+
+  <nav id="prototype-nav">
+    <button class="proto-tab active" data-target="proto-cyber">
+      <span class="pill-num">01</span> Cyberpunk Workbench
+    </button>
+    <button class="proto-tab" data-target="proto-kanban">
+      <span class="pill-num">02</span> Cards & Kanban
+    </button>
+    <button class="proto-tab" data-target="proto-bench">
+      <span class="pill-num">03</span> Experiment Bench
+    </button>
+    <button class="proto-tab" data-target="proto-fusion">
+      <span class="pill-num">04</span> Unified Fusion
+    </button>
+    <button class="proto-tab" data-target="proto-subagents">
+      <span class="pill-num">05</span> ⚡ Subagent Units
+    </button>
+  </nav>
+
+  <div class="header-spacer"></div>
+
+  <div class="studio-utils">
+    <select class="select-theme" id="theme-selector">
+      <option value="cyber">Cyberpunk Neon</option>
+      <option value="arc">Bearded Theme Arc</option>
+      <option value="slate">Clean Slate Modern</option>
+    </select>
+    <button class="btn-doc-link" onclick="openZenKeyboard()">
+      ⌨ Zen Mode
+    </button>
+  </div>
+</header>
+
+<main id="studio-stage">
+
+  <!-- ───────────────────────────────────────────────────────────────────────
+       PROTOTYPE 1: CYBERPUNK PROMPT & TASK WORKBENCH
+  ─────────────────────────────────────────────────────────────────────── -->
+  <section id="proto-cyber" class="prototype-view active">
+    <div class="cp-workbench">
+      <!-- Left Sidebar -->
+      <aside class="cp-sidebar">
+        <div class="cp-side-header">
+          <div class="cp-side-title">Workspace Index</div>
+          <div class="cp-mode-toggles">
+            <button class="cp-mode-btn active" id="cp-tab-prompts" onclick="switchCpMode('prompt')">Prompts</button>
+            <button class="cp-mode-btn" id="cp-tab-tasks" onclick="switchCpMode('task')">Tasks</button>
+          </div>
+        </div>
+        <div class="cp-items-list" id="cp-items-list">
+          <!-- Dynamic Items Injected via JS -->
+        </div>
+        <div class="cp-side-footer">
+          <button class="btn-new-item" onclick="createCpNewItem()">+ New Entry</button>
+        </div>
+      </aside>
+
+      <!-- Center Builder -->
+      <main class="cp-center">
+        <div class="cp-center-topbar">
+          <input type="text" class="cp-title-input" id="cp-input-title" value="Agentic Code Refactor & Unit Test Protocol" placeholder="Prompt Title...">
+          <select class="cp-select" id="cp-select-template" onchange="applyCpTemplate(this.value)">
+            <option value="pe_agentic">PE — Agentic Coding</option>
+            <option value="promptology">Promptology Framework</option>
+            <option value="claude_code">Claude Code Task</option>
+            <option value="pe_extract">PE — Structured Extract</option>
+            <option value="general">General Persona & Task</option>
+          </select>
+          <select class="cp-select" id="cp-select-status">
+            <option value="ready">Status: Ready</option>
+            <option value="inprogress">Status: In Progress</option>
+            <option value="done">Status: Done</option>
+            <option value="blocked">Status: Blocked</option>
+          </select>
+        </div>
+
+        <div class="cp-sections-container" id="cp-sections-container">
+          <!-- Sections loaded dynamically from active prompt -->
+        </div>
+
+        <!-- Action Bar & Vim HUD -->
+        <footer class="cp-actionbar">
+          <button class="btn-action btn-action-primary" onclick="copyOutput()">Copy Output</button>
+          <button class="btn-action btn-action-sec" onclick="triggerToast('Draft saved to session memory')">Save Draft</button>
+          <button class="btn-action btn-action-sec" onclick="optimizePromptMock()">✦ Optimize</button>
+          <button class="btn-action btn-action-run" onclick="runPromptMock()">▶ Run Mock</button>
+
+          <div class="seg-toggle">
+            <button class="seg-btn active" id="btn-fmt-xml" onclick="setFormat('xml')">&lt;XML&gt;</button>
+            <button class="seg-btn" id="btn-fmt-md" onclick="setFormat('md')"># MD</button>
+          </div>
+
+          <div class="seg-toggle">
+            <button class="seg-btn active" id="btn-vim-toggle" onclick="toggleVimMode()">VIM</button>
+          </div>
+
+          <div class="vim-hud-wrap">
+            <div class="vim-badge vim-normal" id="vim-mode-badge" onclick="cycleVimState()">NORMAL</div>
+            <div class="vim-hint-text" id="vim-hint-text"><b>h j k l</b> move · <b>dd</b> kill line · <b>i</b> insert · <b>:w</b> save</div>
+            <button class="btn-vim-help" onclick="toggleCheatsheet(true)">?</button>
+          </div>
+        </footer>
+      </main>
+
+      <!-- Right Output & Chat Runner -->
+      <aside class="cp-right-panel">
+        <div class="cp-right-header">
+          <div class="cp-right-tabs">
+            <button class="tab-right-btn active" id="tab-btn-out" onclick="switchRightTab('output')">Compiled Output</button>
+            <button class="tab-right-btn" id="tab-btn-chat" onclick="switchRightTab('chat')">Live Runner</button>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted);" id="token-stat-badge">248 tokens</span>
+        </div>
+
+        <div id="pane-right-output" class="cp-preview-output">
+          <!-- Compiled XML/MD goes here -->
+        </div>
+
+        <div id="pane-right-chat" class="cp-chat-view" style="display: none;">
+          <div class="cp-chat-thread" id="cp-chat-thread">
+            <div class="chat-msg system">Session Initialized · Model: Claude 3.7 Sonnet (Thinking: High)</div>
+            <div class="chat-msg model">Ready for execution. You can compile your prompt and click <b>"▶ Run Mock"</b> or type queries below.</div>
+          </div>
+          <div style="padding: 10px; border-top: 1px solid var(--border-subtle); display: flex; gap: 8px;">
+            <input type="text" id="cp-chat-input" placeholder="Type prompt or message..." style="flex: 1; background: var(--bg-root); border: 1px solid var(--border-strong); border-radius: 4px; padding: 8px 10px; color: var(--text-main); font-family: var(--font-mono); font-size: 11px; outline: none;">
+            <button class="btn-action btn-action-sec" onclick="sendChatMessage()">Send</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────────────────────────────────
+       PROTOTYPE 2: CONVERSATION CARDS & REPLY-TO-KANBAN
+  ─────────────────────────────────────────────────────────────────────── -->
+  <section id="proto-kanban" class="prototype-view">
+    <div class="cards-kanban-root">
+      <aside class="conv-sidebar">
+        <div class="conv-side-header">
+          <div class="cp-side-title">Conversation Thread</div>
+          <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Prompt & Reply Docs</p>
+        </div>
+        <div class="conv-thread-list" id="conv-thread-list">
+          <div class="conv-doc-pill active" onclick="selectConvDoc(0)">
+            <div>
+              <div class="conv-doc-type doc-type-prompt">01 · Prompt Doc</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">Core Architecture Ask</div>
+            </div>
+            <span style="font-size: 10px; color: var(--text-muted);">6 secs</span>
+          </div>
+          <div class="conv-doc-pill" onclick="selectConvDoc(1)">
+            <div>
+              <div class="conv-doc-type doc-type-reply">02 · Reply Doc</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">Claude Response Edits</div>
+            </div>
+            <span style="font-size: 10px; color: var(--accent-pink);">4 edits</span>
+          </div>
+        </div>
+        <div style="padding: 10px; border-top: 1px solid var(--border-subtle);">
+          <button class="btn-new-item" onclick="addConvDoc('prompt')">+ New Prompt Doc</button>
+          <button class="btn-new-item" style="margin-top: 6px;" onclick="addConvDoc('reply')">+ New Reply Doc</button>
+        </div>
+      </aside>
+
+      <!-- Center Cards Column -->
+      <main class="conv-center">
+        <div class="conv-center-header">
+          <div>
+            <h2 style="font-family: var(--font-sub); font-size: 18px; font-weight: 700; color: var(--accent-acid);" id="conv-active-title">
+              Message 01: Core Architecture Ask
+            </h2>
+            <div style="font-size: 11px; color: var(--text-secondary);">Structured section cards with numbered point gutters</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-action btn-action-sec" onclick="addCardSection()">+ Add Card</button>
+            <button class="btn-action btn-action-primary" onclick="copyConvDoc()">Copy Doc XML</button>
+          </div>
+        </div>
+
+        <div class="conv-center-cards" id="conv-cards-container">
+          <!-- Semantic Section Cards Injected via JS -->
+        </div>
+      </main>
+
+      <!-- Right Kanban Column -->
+      <aside class="kanban-column-drawer">
+        <div class="kanban-head">
+          <div class="cp-side-title">Actionable Edits Board</div>
+          <span style="font-size: 11px; color: var(--accent-cyan); font-weight: 700;" id="kb-total-badge">3 cards</span>
+        </div>
+
+        <button class="btn-extract-cards" onclick="extractReplyCards()">
+          ⚡ Auto-Extract Cards from Reply Edits
+        </button>
+
+        <div class="kanban-lanes">
+          <div class="kanban-lane" id="lane-todo">
+            <div class="lane-title">
+              <span>To Do</span>
+              <span class="lane-count" id="count-todo">2</span>
+            </div>
+            <div class="lane-cards" id="cards-todo">
+              <div class="kb-card">
+                <div class="kb-card-title">Extract pure model layer from Vue components</div>
+                <div class="kb-checklist">
+                  <label class="kb-check-row"><input type="checkbox" checked> Decouple points.ts</label>
+                  <label class="kb-check-row"><input type="checkbox"> Unit test serializeDoc</label>
+                </div>
+              </div>
+              <div class="kb-card">
+                <div class="kb-card-title">Mirror regex gutter in CodeMirror extension</div>
+                <div class="kb-checklist">
+                  <label class="kb-check-row"><input type="checkbox"> Add line number offset</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kanban-lane" id="lane-doing">
+            <div class="lane-title">
+              <span>Doing</span>
+              <span class="lane-count" id="count-doing">1</span>
+            </div>
+            <div class="lane-cards" id="cards-doing">
+              <div class="kb-card">
+                <div class="kb-card-title">Tauri v2 clipboard plugin shim</div>
+                <div class="kb-checklist">
+                  <label class="kb-check-row"><input type="checkbox"> Dynamic import fallback</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kanban-lane" id="lane-done">
+            <div class="lane-title">
+              <span>Done</span>
+              <span class="lane-count" id="count-done">1</span>
+            </div>
+            <div class="lane-cards" id="cards-done">
+              <div class="kb-card" style="opacity: 0.65;">
+                <div class="kb-card-title"><s>Bearded Theme color mapping tokens</s></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────────────────────────────────
+       PROTOTYPE 3: EXPERIMENT BENCH & TOKEN WEIGHT (Spec B)
+  ─────────────────────────────────────────────────────────────────────── -->
+  <section id="proto-bench" class="prototype-view">
+    <div class="bench-root">
+      <main class="bench-doc-area">
+        <h1 class="bench-doc-title">Bench: Prompt Architecture as an Experiment</h1>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">
+          "Prompts change between runs and nobody remembers what changed. A prompt is an experiment with a history, not a static document."
+        </p>
+
+        <div class="bench-section-block">
+          <div class="bench-section-bar">
+            <span class="bench-heading">## Role & Persona</span>
+            <div class="bench-weight-meter">
+              <div class="weight-bar-outer"><div class="weight-bar-fill" style="width: 25%;"></div></div>
+              <span class="weight-label">62 tokens (18%)</span>
+            </div>
+          </div>
+          <textarea class="cp-textarea" style="min-height: 60px;">You are an elite systems architect specializing in high-performance Web and Rust desktop frameworks. Respond with decisive, minimal code.</textarea>
+        </div>
+
+        <div class="bench-section-block">
+          <div class="bench-section-bar">
+            <span class="bench-heading">## Context</span>
+            <div class="bench-weight-meter">
+              <div class="weight-bar-outer"><div class="weight-bar-fill" style="width: 45%;"></div></div>
+              <span class="weight-label">145 tokens (42%)</span>
+            </div>
+          </div>
+          <textarea class="cp-textarea" style="min-height: 80px;">We are consolidating three prototype specifications into PromptTOR. The stack relies on client-side state without premature server complexity. Tauri v2 provides OS bridges.</textarea>
+        </div>
+
+        <div class="bench-section-block">
+          <div class="bench-section-bar">
+            <span class="bench-heading">## Instructions & Constraints</span>
+            <div class="bench-weight-meter">
+              <div class="weight-bar-outer"><div class="weight-bar-fill" style="width: 30%;"></div></div>
+              <span class="weight-label">98 tokens (28%)</span>
+            </div>
+          </div>
+          <textarea class="cp-textarea" style="min-height: 70px;">1. Never insert database connections in design phases.
+2. Maintain verbatim output formatting in fenced blocks.
+3. Keep tokens under 500 total.</textarea>
+        </div>
+
+        <div class="bench-section-block">
+          <div class="bench-section-bar">
+            <span class="bench-heading">## Output Format</span>
+            <div class="bench-weight-meter">
+              <div class="weight-bar-outer"><div class="weight-bar-fill" style="width: 15%;"></div></div>
+              <span class="weight-label">40 tokens (12%)</span>
+            </div>
+          </div>
+          <textarea class="cp-textarea" style="min-height: 50px;">Return clean XML-wrapped sections matching exact tag slugs.</textarea>
+        </div>
+      </main>
+
+      <aside class="bench-notebook-pane">
+        <div class="bench-tabs-header">
+          <button class="bench-tab-btn active" id="btab-ver" onclick="switchBenchTab('versions')">Versions (3)</button>
+          <button class="bench-tab-btn" id="btab-diff" onclick="switchBenchTab('diff')">Diff Compare</button>
+          <button class="bench-tab-btn" id="btab-runs" onclick="switchBenchTab('runs')">Test Runs (4)</button>
+        </div>
+
+        <!-- Versions Panel -->
+        <div class="bench-tab-panel" id="bpanel-versions">
+          <div class="version-card selected" onclick="selectVersion(3)">
+            <div class="version-head">
+              <span class="ver-tag">v0003 (Current)</span>
+              <span class="ver-time">Just now</span>
+            </div>
+            <div class="ver-note">Added strict negative constraints & token meters</div>
+          </div>
+          <div class="version-card" onclick="selectVersion(2)">
+            <div class="version-head">
+              <span class="ver-tag">v0002</span>
+              <span class="ver-time">Yesterday, 18:20</span>
+            </div>
+            <div class="ver-note">Added role definition & context files</div>
+          </div>
+          <div class="version-card" onclick="selectVersion(1)">
+            <div class="version-head">
+              <span class="ver-tag">v0001</span>
+              <span class="ver-time">Sep 28, 14:05</span>
+            </div>
+            <div class="ver-note">Initial bare markdown skeleton</div>
+          </div>
+        </div>
+
+        <!-- Diff Panel -->
+        <div class="bench-tab-panel" id="bpanel-diff" style="display: none;">
+          <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">Diff: v0002 ➔ v0003</div>
+          <div class="diff-container">
+            <div class="diff-line"> ## Instructions &amp; Constraints</div>
+            <div class="diff-line diff-del">- 1. Write the code properly and fast.</div>
+            <div class="diff-line diff-add">+ 1. Never insert database connections in design phases.</div>
+            <div class="diff-line diff-add">+ 2. Maintain verbatim output formatting in fenced blocks.</div>
+            <div class="diff-line diff-add">+ 3. Keep tokens under 500 total.</div>
+          </div>
+        </div>
+
+        <!-- Runs Panel -->
+        <div class="bench-tab-panel" id="bpanel-runs" style="display: none;">
+          <div class="run-item">
+            <div class="run-top">
+              <span class="run-model">Claude 3.7 Sonnet · 345 tokens</span>
+              <div class="verdict-pills">
+                <span class="verdict-pill verdict-worked" onclick="toggleVerdict(this)">✓ Worked</span>
+                <span class="verdict-pill" onclick="toggleVerdict(this)">Didn't</span>
+              </div>
+            </div>
+            <p style="font-size: 11px; color: var(--text-secondary);">Model respected all constraints and generated clean standalone code in 1.4s.</p>
+          </div>
+          <div class="run-item">
+            <div class="run-top">
+              <span class="run-model">Gemini 2.0 Flash · 360 tokens</span>
+              <div class="verdict-pills">
+                <span class="verdict-pill" onclick="toggleVerdict(this)">Worked</span>
+                <span class="verdict-pill verdict-didnt" onclick="toggleVerdict(this)">✗ Didn't</span>
+              </div>
+            </div>
+            <p style="font-size: 11px; color: var(--text-secondary);">Included preamble text before the XML tags despite prompt rule.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────────────────────────────────
+       PROTOTYPE 4: UNIFIED FUSION WORKBENCH
+  ─────────────────────────────────────────────────────────────────────── -->
+  <section id="proto-fusion" class="prototype-view">
+    <div class="fusion-root">
+      <!-- Snippet Piece Library -->
+      <aside class="fusion-lib-rail">
+        <div class="fusion-lib-head">
+          <div class="cp-side-title">Piece Library</div>
+          <span style="font-size: 11px; color: var(--accent-cyan); font-weight: 700;">8 pieces</span>
+        </div>
+        <div style="padding: 0 12px;">
+          <input type="text" class="fusion-search-input" placeholder="Search pieces (e.g. role, schema)..." oninput="filterPieces(this.value)">
+        </div>
+        <div class="fusion-lib-content" id="fusion-lib-content">
+          <div>
+            <div class="piece-group-title">Roles &amp; Personas</div>
+            <div class="piece-chip" onclick="insertPiece('Senior Agentic Architect')">
+              <span>Senior Systems Architect</span>
+              <span class="add-icon">+</span>
+            </div>
+            <div class="piece-chip" onclick="insertPiece('Autonomous Code Reviewer')">
+              <span>Strict Code Reviewer</span>
+              <span class="add-icon">+</span>
+            </div>
+          </div>
+          <div>
+            <div class="piece-group-title">Negative Constraints</div>
+            <div class="piece-chip" onclick="insertPiece('No External Database Connections')">
+              <span>No DB Connections</span>
+              <span class="add-icon">+</span>
+            </div>
+            <div class="piece-chip" onclick="insertPiece('Zero Placeholder Functions')">
+              <span>No Placeholders / Stubs</span>
+              <span class="add-icon">+</span>
+            </div>
+          </div>
+          <div>
+            <div class="piece-group-title">Output Schemas</div>
+            <div class="piece-chip" onclick="insertPiece('Strict XML Tag Wrapping')">
+              <span>Rootless XML Format</span>
+              <span class="add-icon">+</span>
+            </div>
+            <div class="piece-chip" onclick="insertPiece('Point-by-point Numbered Edits')">
+              <span>Numbered Point Gutter</span>
+              <span class="add-icon">+</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Dynamic Builder with Weight Gauges -->
+      <main class="fusion-center">
+        <div class="fusion-center-top">
+          <input type="text" class="cp-title-input" value="Unified PromptTOR Workbench Blueprint">
+          <div class="badge badge-pe">Synthesized v4</div>
+          <button class="btn-action btn-action-primary" onclick="copyFusionDoc()">Compile Everything</button>
+        </div>
+
+        <div class="fusion-canvas" id="fusion-canvas">
+          <!-- Dynamic Synthesized Blocks -->
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────────────────────────────────
+       PROTOTYPE 5: SUBAGENT CONTEXT UNITS & PRO REASONING PRESERVER
+  ─────────────────────────────────────────────────────────────────────── -->
+  <section id="proto-subagents" class="prototype-view">
+    <div class="subagents-root">
+      <!-- Left Pane: Executive Pro Orchestrator -->
+      <aside class="swp-left-pane">
+        <div class="cp-side-title">Pro Model Orchestrator</div>
+        
+        <div class="swp-metrics-card">
+          <div style="font-size: 10px; font-weight: 700; color: var(--accent-acid); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">
+            Pro Reasoning Efficiency
+          </div>
+          <div class="metric-val-big" id="metric-saved-pct">82% SAVED</div>
+          <p style="font-size: 10.5px; color: var(--text-secondary); margin: 6px 0 10px;">
+            Delegating bounded investigation & isolated diffs preserves the Pro model for executive architecture.
+          </p>
+          <div class="metric-row">
+            <span>Traditional Raw Pro Burn:</span>
+            <span style="color: var(--accent-pink); font-weight: 700;">12,500 tokens</span>
+          </div>
+          <div class="metric-row">
+            <span>Contract-Driven SWP Burn:</span>
+            <span style="color: var(--accent-green); font-weight: 700;">2,200 Pro + 3x 450 Worker</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-family: var(--font-sub); font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent-cyan); display: block; margin-bottom: 4px;">
+            Executive Goal to Decompose
+          </label>
+          <textarea id="swp-goal-input" class="cp-textarea" style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 85px; font-size: 12px;">Refactor serializeDoc and points regex into pure model layer; wire tests with zero database overhead.</textarea>
+        </div>
+
+        <div>
+          <label style="font-family: var(--font-sub); font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); display: block; margin-bottom: 4px;">
+            Target Boundaries (Scope)
+          </label>
+          <input type="text" id="swp-files-input" value="src/model/serialize.ts, src/model/points.ts" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 8px; font-size: 11px; color: var(--accent-blue); font-family: var(--font-mono); outline: none;">
+        </div>
+
+        <button class="btn-action btn-action-primary" style="width: 100%; margin-top: 4px;" onclick="triggerDecomposition()">
+          ⚡ Decompose into SWP Units
+        </button>
+      </aside>
+
+      <!-- Center Pane: Bounded Subagent Work Packets -->
+      <main class="swp-center-pane">
+        <div class="swp-center-head">
+          <div>
+            <h2 style="font-family: var(--font-sub); font-size: 17px; font-weight: 700; color: var(--accent-acid);">
+              Bounded Subagent Context Packets (SWPs)
+            </h2>
+            <div style="font-size: 11px; color: var(--text-secondary);">
+              Atomic work units with explicit read/write barriers & negative constraints
+            </div>
+          </div>
+          <span class="badge badge-pe" id="swp-packet-count">3 Packets Ready</span>
+        </div>
+
+        <div class="swp-packets-list" id="swp-packets-list">
+          <!-- Dynamically Rendered SWP Cards -->
+        </div>
+      </main>
+
+      <!-- Right Pane: Cross-Model XML Inspector & Dispatcher -->
+      <aside class="swp-right-pane">
+        <div class="swp-right-head">
+          <div class="cp-side-title">Model-Agnostic Contract</div>
+          <select class="cp-select" id="swp-target-model" onchange="updateSwpCompiledOutput()">
+            <option value="xml">Universal Rootless &lt;subagent_packet&gt;</option>
+            <option value="claude">Claude Code CLI Work Unit</option>
+            <option value="md">Markdown Bounded Contract</option>
+          </select>
+        </div>
+
+        <div class="swp-output-view" id="swp-compiled-output">
+          <!-- Compiled packet XML goes here -->
+        </div>
+
+        <div style="padding: 12px 14px; border-top: 1px solid var(--border-subtle); background: var(--bg-surface); display: flex; gap: 8px;">
+          <button class="btn-action btn-action-primary" style="flex: 1;" onclick="copySwpPacket()">
+            Copy SWP XML
+          </button>
+          <button class="btn-action btn-action-run" style="flex: 1;" onclick="dispatchMockSubagent()">
+            ▶ Test Dispatch Subagent
+          </button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+</main>
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     ZEN FOCUS MECHANICAL KEYBOARD MODAL (From IDEAS.md Vision)
+───────────────────────────────────────────────────────────────────────── -->
+<div class="zen-keyboard-overlay" id="zen-keyboard">
+  <button class="btn-zen-close" onclick="closeZenKeyboard()">✕ Exit Zen Mode</button>
+  <div class="zen-hud-title">
+    <span>ICE-CODE MECHANICAL FOCUS KEYBOARD</span>
+    <span style="font-size: 10px; color: var(--accent-acid);">[Type keys on your keyboard to illuminate]</span>
+  </div>
+  <div class="zen-keys-row">
+    <div class="zen-key" data-key="q">Q</div>
+    <div class="zen-key" data-key="w">W</div>
+    <div class="zen-key" data-key="e">E</div>
+    <div class="zen-key" data-key="r">R</div>
+    <div class="zen-key" data-key="t">T</div>
+    <div class="zen-key" data-key="y">Y</div>
+    <div class="zen-key" data-key="u">U</div>
+    <div class="zen-key" data-key="i">I</div>
+    <div class="zen-key" data-key="o">O</div>
+    <div class="zen-key" data-key="p">P</div>
+  </div>
+  <div class="zen-keys-row">
+    <div class="zen-key" data-key="a">A</div>
+    <div class="zen-key" data-key="s">S</div>
+    <div class="zen-key" data-key="d">D</div>
+    <div class="zen-key" data-key="f">F</div>
+    <div class="zen-key" data-key="g">G</div>
+    <div class="zen-key" data-key="h">H</div>
+    <div class="zen-key" data-key="j">J</div>
+    <div class="zen-key" data-key="k">K</div>
+    <div class="zen-key" data-key="l">L</div>
+  </div>
+  <div class="zen-keys-row">
+    <div class="zen-key" data-key="z">Z</div>
+    <div class="zen-key" data-key="x">X</div>
+    <div class="zen-key" data-key="c">C</div>
+    <div class="zen-key" data-key="v">V</div>
+    <div class="zen-key" data-key="b">B</div>
+    <div class="zen-key" data-key="n">N</div>
+    <div class="zen-key" data-key="m">M</div>
+    <div class="zen-key" data-key="enter" style="width: 70px;">ENTER</div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     VIM CHEATSHEET MODAL
+───────────────────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="cheatsheet-modal" onclick="if(event.target === this) toggleCheatsheet(false)">
+  <div class="modal-window">
+    <div class="modal-title">
+      <span>VIM COMMAND REFERENCE</span>
+      <button style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 18px;" onclick="toggleCheatsheet(false)">✕</button>
+    </div>
+    <p style="font-size: 12px; color: var(--text-secondary);">Direct keystrokes emulated in PromptTOR editors:</p>
+    <div class="modal-grid">
+      <div>
+        <div style="color: var(--accent-acid); font-weight: 700; margin-bottom: 6px;">MOTIONS</div>
+        <div><span class="k">h / j / k / l</span> <span class="d">· left / down / up / right</span></div>
+        <div><span class="k">w / b</span> <span class="d">· word forward / back</span></div>
+        <div><span class="k">0 / $</span> <span class="d">· start / end of line</span></div>
+        <div><span class="k">gg / G</span> <span class="d">· document top / bottom</span></div>
+      </div>
+      <div>
+        <div style="color: var(--accent-acid); font-weight: 700; margin-bottom: 6px;">OPERATIONS</div>
+        <div><span class="k">i / a</span> <span class="d">· insert before / after cursor</span></div>
+        <div><span class="k">dd</span> <span class="d">· delete current line</span></div>
+        <div><span class="k">y / p</span> <span class="d">· yank (copy) / paste</span></div>
+        <div><span class="k">u / Ctrl+R</span> <span class="d">· undo / redo</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Global Notification Toast -->
+<div id="studio-toast">✓ Action completed</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE STUDIO CORE LOGIC & STATE
+───────────────────────────────────────────────────────────────────────────── */
+
+// Sample Data Mock State
+const mockCyberItems = [
+  {
+    id: 'p1',
+    mode: 'prompt',
+    name: 'Agentic Code Refactor & Unit Test Protocol',
+    template: 'pe_agentic',
+    status: 'ready',
+    fields: {
+      env: 'Claude Code CLI, TypeScript 5.9, Vite 8, Vitest',
+      files: ['src/model/serialize.ts', 'src/model/points.ts'],
+      task: 'Refactor serializeDoc to cleanly handle Corrections with numbered points format.',
+      rules: 'Only change what is requested. Never add unasked dependencies or database calls.'
+    },
+    blocks: ['investigate-first', 'no-overengineering', 'general-solution', 'self-check']
+  },
+  {
+    id: 'p2',
+    mode: 'prompt',
+    name: 'Structured Extract: Meeting Action Items',
+    template: 'pe_extract',
+    status: 'inprogress',
+    fields: {
+      input: 'Meeting Notes: 10/11 session. DZ requested interactive prototypes for PromptTOR...',
+      fields: 'action_item (string), owner (string), priority (high|med|low)',
+      output: 'Strict JSON schema adhering to ActionItem array.'
+    },
+    blocks: ['no-preamble', 'self-check']
+  },
+  {
+    id: 't1',
+    mode: 'task',
+    name: 'S1-03: Decouple Points Regex from Gutter',
+    template: 'claude_code',
+    status: 'ready',
+    fields: {
+      task_id: 'S1-03',
+      objective: 'Ensure Writing.vue uses pure points.ts regex without duplication.',
+      files: ['src/model/points.ts', 'src/components/Writing.vue'],
+      depends: 'S1-01',
+      scope: 'Do not modify CodeMirror package versions.'
+    },
+    blocks: []
+  }
+];
+
+let activeCpItem = mockCyberItems[0];
+let currentFmt = 'xml';
+let vimActive = true;
+let vimStates = ['NORMAL', 'INSERT', 'VISUAL'];
+let vimStateIndex = 0;
+
+// Initialize on Load
+document.addEventListener('DOMContentLoaded', () => {
+  setupPrototypeNavigation();
+  setupThemeSelector();
+  renderCpSidebar();
+  loadCpItem(activeCpItem);
+  renderConvCards();
+  renderFusionCanvas();
+  renderSwpCards();
+  setupKeyboardListener();
+});
+
+/* ── Archetype Navigation ── */
+function setupPrototypeNavigation() {
+  const tabs = document.querySelectorAll('.proto-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const targetId = tab.dataset.target;
+      document.querySelectorAll('.prototype-view').forEach(view => {
+        view.classList.remove('active');
+      });
+      document.getElementById(targetId)?.classList.add('active');
+    });
+  });
+}
+
+function setupThemeSelector() {
+  const sel = document.getElementById('theme-selector');
+  sel.addEventListener('change', (e) => {
+    document.body.setAttribute('data-theme', e.target.value);
+    triggerToast(`Theme set to ${e.target.selectedOptions[0].text}`);
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 1: CYBERPUNK LOGIC
+───────────────────────────────────────────────────────────────────────────── */
+function switchCpMode(mode) {
+  document.getElementById('cp-tab-prompts').classList.toggle('active', mode === 'prompt');
+  document.getElementById('cp-tab-tasks').classList.toggle('active', mode === 'task');
+  renderCpSidebar(mode);
+}
+
+function renderCpSidebar(filterMode = 'prompt') {
+  const listEl = document.getElementById('cp-items-list');
+  listEl.innerHTML = '';
+  const filtered = mockCyberItems.filter(item => item.mode === filterMode);
+
+  filtered.forEach(item => {
+    const card = document.createElement('div');
+    card.className = `cp-item-card ${item.id === activeCpItem.id ? 'active' : ''}`;
+    card.onclick = () => loadCpItem(item);
+
+    const badgeClass = item.mode === 'task' ? 'badge-task' : (item.template.startsWith('pe_') ? 'badge-pe' : 'badge-prompt');
+    const badgeText = item.mode === 'task' ? 'TASK' : (item.template.startsWith('pe_') ? 'PE' : 'PROMPT');
+
+    card.innerHTML = `
+      <div class="cp-item-name">${escapeHtml(item.name)}</div>
+      <div class="cp-item-meta">
+        <span class="badge ${badgeClass}">${badgeText}</span>
+        <span style="color: var(--text-muted);">${item.fields.files ? item.fields.files.length + ' files' : '4 fields'}</span>
+      </div>
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+function loadCpItem(item) {
+  activeCpItem = item;
+  document.getElementById('cp-input-title').value = item.name;
+  document.getElementById('cp-select-template').value = item.template;
+  document.getElementById('cp-select-status').value = item.status;
+  renderCpSections(item);
+  renderCpSidebar(item.mode);
+  updateCompiledOutput();
+}
+
+function renderCpSections(item) {
+  const container = document.getElementById('cp-sections-container');
+  container.innerHTML = '';
+
+  let idx = 1;
+  for (const [key, val] of Object.entries(item.fields)) {
+    if (key === 'files') {
+      const fileBox = document.createElement('div');
+      fileBox.className = 'cp-field-box';
+      fileBox.innerHTML = `
+        <div class="cp-field-head">
+          <div class="cp-field-num">${pad(idx++)}</div>
+          <div class="cp-field-tag">&lt;reference_files&gt;</div>
+          <div class="cp-field-label">Reference Files</div>
+          <div class="cp-field-hint">paths for agent inspection</div>
+        </div>
+        <div class="cp-file-row">
+          ${val.map(f => `
+            <div class="file-pill">
+              <span>${escapeHtml(f)}</span>
+              <button class="file-pill-del" onclick="this.parentElement.remove(); updateCompiledOutput();">×</button>
+            </div>
+          `).join('')}
+          <input type="text" placeholder="+ add file path..." style="background: none; border: none; font-size: 11px; color: var(--accent-cyan); outline: none;" onkeydown="if(event.key==='Enter'){addFilePath(this); event.preventDefault();}">
+        </div>
+      `;
+      container.appendChild(fileBox);
+      continue;
+    }
+
+    const fieldBox = document.createElement('div');
+    fieldBox.className = 'cp-field-box';
+    const tag = slug(key);
+    fieldBox.innerHTML = `
+      <div class="cp-field-head">
+        <div class="cp-field-num">${pad(idx++)}</div>
+        <div class="cp-field-tag">&lt;${tag}&gt;</div>
+        <div class="cp-field-label">${escapeHtml(key)}</div>
+        <div class="cp-field-hint">editable section</div>
+      </div>
+      <textarea class="cp-textarea" oninput="activeCpItem.fields['${key}'] = this.value; updateCompiledOutput();">${escapeHtml(val)}</textarea>
+    `;
+    container.appendChild(fieldBox);
+  }
+
+  // Guideline blocks chips
+  const blocksBox = document.createElement('div');
+  blocksBox.className = 'cp-blocks-container';
+  const availableBlocks = ['investigate-first', 'no-overengineering', 'general-solution', 'cleanup-temp-files', 'self-check', 'no-preamble'];
+  blocksBox.innerHTML = `
+    <div class="cp-blocks-label">
+      <span>Anthropic Best-Practice Guideline Blocks</span>
+      <span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">toggle to inject rules</span>
+    </div>
+    <div class="cp-chips-row">
+      ${availableBlocks.map(b => {
+        const active = (item.blocks || []).includes(b);
+        return `
+          <div class="block-chip ${active ? 'active' : ''}" onclick="toggleBlockChip(this, '${b}')">
+            <span class="chip-box">${active ? '✓' : ''}</span>
+            <span>${b}</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  container.appendChild(blocksBox);
+}
+
+function toggleBlockChip(el, blockKey) {
+  el.classList.toggle('active');
+  const isActive = el.classList.contains('active');
+  el.querySelector('.chip-box').textContent = isActive ? '✓' : '';
+  if (!activeCpItem.blocks) activeCpItem.blocks = [];
+  if (isActive) {
+    activeCpItem.blocks.push(blockKey);
+  } else {
+    activeCpItem.blocks = activeCpItem.blocks.filter(b => b !== blockKey);
+  }
+  updateCompiledOutput();
+}
+
+function addFilePath(input) {
+  const path = input.value.trim();
+  if (!path) return;
+  if (!activeCpItem.fields.files) activeCpItem.fields.files = [];
+  activeCpItem.fields.files.push(path);
+  input.value = '';
+  renderCpSections(activeCpItem);
+  updateCompiledOutput();
+}
+
+function updateCompiledOutput() {
+  const outPane = document.getElementById('pane-right-output');
+  const tokenBadge = document.getElementById('token-stat-badge');
+  const title = document.getElementById('cp-input-title').value.trim();
+
+  let compiled = '';
+  if (currentFmt === 'xml') {
+    compiled += `<!-- PROMPTOR COMPILED ROOTLESS XML -->\n`;
+    for (const [key, val] of Object.entries(activeCpItem.fields)) {
+      if (key === 'files') {
+        if (val.length) {
+          compiled += `<reference_files>\n${val.map(f => `- ${f}`).join('\n')}\n</reference_files>\n\n`;
+        }
+        continue;
+      }
+      if (val && val.trim()) {
+        const tag = slug(key);
+        compiled += `<${tag}>\n${val.trim()}\n</${tag}>\n\n`;
+      }
+    }
+    if (activeCpItem.blocks && activeCpItem.blocks.length) {
+      compiled += `<guidelines>\n${activeCpItem.blocks.map((b, i) => `${pad(i+1)}. [${b}] Adhere strictly to protocol.`).join('\n')}\n</guidelines>\n`;
+    }
+  } else {
+    compiled += `# ${title || 'Untitled Prompt'}\n\n`;
+    for (const [key, val] of Object.entries(activeCpItem.fields)) {
+      if (key === 'files') {
+        if (val.length) {
+          compiled += `## Reference Files\n${val.map(f => `- \`${f}\``).join('\n')}\n\n`;
+        }
+        continue;
+      }
+      if (val && val.trim()) {
+        compiled += `## ${key.toUpperCase()}\n${val.trim()}\n\n`;
+      }
+    }
+    if (activeCpItem.blocks && activeCpItem.blocks.length) {
+      compiled += `## GUIDELINES\n${activeCpItem.blocks.map(b => `- ${b}`).join('\n')}\n`;
+    }
+  }
+
+  outPane.textContent = compiled;
+  const wordCount = compiled.split(/\s+/).filter(Boolean).length;
+  tokenBadge.textContent = `${Math.round(wordCount * 1.35)} tokens · ${wordCount} words`;
+}
+
+function setFormat(fmt) {
+  currentFmt = fmt;
+  document.getElementById('btn-fmt-xml').classList.toggle('active', fmt === 'xml');
+  document.getElementById('btn-fmt-md').classList.toggle('active', fmt === 'md');
+  updateCompiledOutput();
+  triggerToast(`Format switched to ${fmt.toUpperCase()}`);
+}
+
+function copyOutput() {
+  const text = document.getElementById('pane-right-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    triggerToast('✓ Copied compiled prompt to clipboard');
+  });
+}
+
+function switchRightTab(tab) {
+  document.getElementById('tab-btn-out').classList.toggle('active', tab === 'output');
+  document.getElementById('tab-btn-chat').classList.toggle('active', tab === 'chat');
+  document.getElementById('pane-right-output').style.display = tab === 'output' ? 'block' : 'none';
+  document.getElementById('pane-right-chat').style.display = tab === 'chat' ? 'flex' : 'none';
+}
+
+function sendChatMessage() {
+  const inp = document.getElementById('cp-chat-input');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+
+  const thread = document.getElementById('cp-chat-thread');
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-msg user';
+  userMsg.textContent = txt;
+  thread.appendChild(userMsg);
+
+  // Simulated streaming model reply
+  setTimeout(() => {
+    const botMsg = document.createElement('div');
+    botMsg.className = 'chat-msg model';
+    botMsg.innerHTML = `<em>Analyzing request...</em>`;
+    thread.appendChild(botMsg);
+    thread.scrollTop = thread.scrollHeight;
+
+    setTimeout(() => {
+      botMsg.innerHTML = `Understood. Analyzing sections of <b>${escapeHtml(activeCpItem.name)}</b>. Proposed changes align with agentic rules and maintain minimal dependencies.`;
+      thread.scrollTop = thread.scrollHeight;
+    }, 600);
+  }, 400);
+}
+
+function runPromptMock() {
+  switchRightTab('chat');
+  const thread = document.getElementById('cp-chat-thread');
+  const sysMsg = document.createElement('div');
+  sysMsg.className = 'chat-msg user';
+  sysMsg.textContent = `▶ Run prompt: "${activeCpItem.name}"`;
+  thread.appendChild(sysMsg);
+
+  setTimeout(() => {
+    const botMsg = document.createElement('div');
+    botMsg.className = 'chat-msg model';
+    botMsg.textContent = `--- RUN OUTPUT ---\nReceived 4 sections and 4 guideline blocks. Output verified against schema. Latency: 1.2s. 0 regressions.`;
+    thread.appendChild(botMsg);
+    thread.scrollTop = thread.scrollHeight;
+  }, 500);
+}
+
+function optimizePromptMock() {
+  triggerToast('✦ Prompt optimized: extracted parameters and sharpened rules');
+  activeCpItem.fields.task = 'Refactor serializeDoc to cleanly handle Corrections with numbered points format. Ensure zero memory leaks.';
+  loadCpItem(activeCpItem);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   VIM HUD SIMULATION
+───────────────────────────────────────────────────────────────────────────── */
+function cycleVimState() {
+  vimStateIndex = (vimStateIndex + 1) % vimStates.length;
+  const state = vimStates[vimStateIndex];
+  const badge = document.getElementById('vim-mode-badge');
+  badge.className = `vim-badge vim-${state.toLowerCase()}`;
+  badge.textContent = state;
+
+  const hint = document.getElementById('vim-hint-text');
+  if (state === 'NORMAL') hint.innerHTML = '<b>h j k l</b> move · <b>dd</b> kill line · <b>i</b> insert · <b>:w</b> save';
+  if (state === 'INSERT') hint.innerHTML = '<b>Esc</b> normal mode · <b>Enter</b> new bullet · <b>Shift+Enter</b> break';
+  if (state === 'VISUAL') hint.innerHTML = '<b>y</b> yank selection · <b>d</b> delete block · <b>c</b> change block';
+}
+
+function toggleVimMode() {
+  vimActive = !vimActive;
+  document.getElementById('btn-vim-toggle').classList.toggle('active', vimActive);
+  document.getElementById('vim-mode-badge').style.opacity = vimActive ? '1' : '0.4';
+  triggerToast(`Vim emulation ${vimActive ? 'Enabled' : 'Disabled'}`);
+}
+
+function toggleCheatsheet(show) {
+  document.getElementById('cheatsheet-modal').classList.toggle('show', show);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 2: CARDS & KANBAN LOGIC
+───────────────────────────────────────────────────────────────────────────── */
+const sampleConvCards = [
+  { id: 'c1', title: 'Who / Role', type: 'who', color: 'var(--accent-cyan)', body: 'You are an autonomous AI pairing partner designed for high-conviction engineering.' },
+  { id: 'c2', title: 'Context', type: 'knows', color: 'var(--accent-green)', body: '> User is consolidating PromptTOR specifications.\n> Target is clean, visual, zero-dependency interactive prototype.' },
+  { id: 'c3', title: 'Proposed Edits', type: 'todo', color: 'var(--accent-pink)', body: '01 Extract pure model layer from Vue components\n02 Mirror regex gutter in CodeMirror extension\n03 Tauri v2 clipboard plugin shim' },
+  { id: 'c4', title: 'Constraints', type: 'limits', color: '#ff4319', body: '1. No premature database integrations.\n2. No broken placeholder buttons.' }
+];
+
+function renderConvCards() {
+  const container = document.getElementById('conv-cards-container');
+  container.innerHTML = '';
+
+  sampleConvCards.forEach((card, index) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'section-card';
+    cardEl.style.setProperty('--type-color', card.color);
+
+    const lines = card.body.split('\n');
+
+    cardEl.innerHTML = `
+      <div class="card-header">
+        <div class="card-type-dot"></div>
+        <input type="text" class="card-title-input" value="${escapeHtml(card.title)}" oninput="sampleConvCards[${index}].title = this.value;">
+        <div class="card-controls">
+          <button class="card-btn" title="Move Up" onclick="moveCard(${index}, -1)">▲</button>
+          <button class="card-btn" title="Move Down" onclick="moveCard(${index}, 1)">▼</button>
+          <button class="card-btn" title="Toggle Exclude" onclick="toggleCardExclude(this, ${index})">👁</button>
+          <button class="card-btn" title="Delete Card" onclick="deleteCard(${index})">✕</button>
+        </div>
+      </div>
+      <div class="card-body-editor">
+        <div class="point-gutter">
+          ${lines.map((_, i) => `<div>${pad(i+1)}</div>`).join('')}
+        </div>
+        <textarea class="card-textarea" oninput="sampleConvCards[${index}].body = this.value;">${escapeHtml(card.body)}</textarea>
+      </div>
+    `;
+    container.appendChild(cardEl);
+  });
+}
+
+function moveCard(index, dir) {
+  const target = index + dir;
+  if (target < 0 || target >= sampleConvCards.length) return;
+  const temp = sampleConvCards[index];
+  sampleConvCards[index] = sampleConvCards[target];
+  sampleConvCards[target] = temp;
+  renderConvCards();
+}
+
+function toggleCardExclude(btn, index) {
+  const card = btn.closest('.section-card');
+  card.classList.toggle('excluded');
+  triggerToast(card.classList.contains('excluded') ? 'Section excluded from compilation' : 'Section included in compilation');
+}
+
+function deleteCard(index) {
+  sampleConvCards.splice(index, 1);
+  renderConvCards();
+}
+
+function addCardSection() {
+  sampleConvCards.push({
+    id: 'c' + Date.now(),
+    title: 'Custom Section',
+    type: 'todo',
+    color: 'var(--accent-purple)',
+    body: 'Write bullet points or quotes here.'
+  });
+  renderConvCards();
+}
+
+function extractReplyCards() {
+  const todoLane = document.getElementById('cards-todo');
+  const countTodo = document.getElementById('count-todo');
+  const totalBadge = document.getElementById('kb-total-badge');
+
+  const newCard = document.createElement('div');
+  newCard.className = 'kb-card';
+  newCard.innerHTML = `
+    <div class="kb-card-title">Fix Corrections parsing rule NN you said X; it is Y</div>
+    <div class="kb-checklist">
+      <label class="kb-check-row"><input type="checkbox"> Test regex truth match</label>
+      <label class="kb-check-row"><input type="checkbox"> Serialize to tags</label>
+    </div>
+  `;
+  todoLane.prepend(newCard);
+  countTodo.textContent = parseInt(countTodo.textContent) + 1;
+  totalBadge.textContent = '4 cards';
+  triggerToast('⚡ Extracted new card from Proposed Edits');
+}
+
+function copyConvDoc() {
+  let xml = '';
+  sampleConvCards.forEach(c => {
+    const tag = slug(c.title);
+    xml += `<${tag}>\n${c.body}\n</${tag}>\n\n`;
+  });
+  navigator.clipboard.writeText(xml).then(() => {
+    triggerToast('✓ Copied Doc XML to clipboard');
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 3: EXPERIMENT BENCH LOGIC
+───────────────────────────────────────────────────────────────────────────── */
+function switchBenchTab(tab) {
+  document.getElementById('btab-ver').classList.toggle('active', tab === 'versions');
+  document.getElementById('btab-diff').classList.toggle('active', tab === 'diff');
+  document.getElementById('btab-runs').classList.toggle('active', tab === 'runs');
+
+  document.getElementById('bpanel-versions').style.display = tab === 'versions' ? 'flex' : 'none';
+  document.getElementById('bpanel-diff').style.display = tab === 'diff' ? 'block' : 'none';
+  document.getElementById('bpanel-runs').style.display = tab === 'runs' ? 'flex' : 'none';
+}
+
+function selectVersion(num) {
+  document.querySelectorAll('.version-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  triggerToast(`Loaded version v000${num}`);
+}
+
+function toggleVerdict(btn) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.verdict-pill').forEach(p => p.className = 'verdict-pill');
+  if (btn.textContent.includes('Worked')) {
+    btn.className = 'verdict-pill verdict-worked';
+  } else {
+    btn.className = 'verdict-pill verdict-didnt';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 4: UNIFIED FUSION LOGIC
+───────────────────────────────────────────────────────────────────────────── */
+function renderFusionCanvas() {
+  const canvas = document.getElementById('fusion-canvas');
+  canvas.innerHTML = `
+    <div class="bench-section-block">
+      <div class="bench-section-bar">
+        <span class="bench-heading">## [01] Role &amp; High-Conviction Persona</span>
+        <div class="bench-weight-meter">
+          <div class="weight-bar-outer"><div class="weight-bar-fill" style="width: 20%;"></div></div>
+          <span class="weight-label">54 tokens (15%)</span>
+        </div>
+      </div>
+      <textarea class="cp-textarea" style="min-height: 60px;">You are an elite full-stack engineer and design systems specialist. Provide immediate, concrete, working code without speculative bloat.</textarea>
+    </div>
+
+    <div class="bench-section-block">
+      <div class="bench-section-bar">
+        <span class="bench-heading">## [02] Reference Files &amp; Boundaries</span>
+        <div class="bench-weight-meter">
+          <div class="weight-bar-outer"><div class="weight-bar-fill" style="width: 35%;"></div></div>
+          <span class="weight-label">92 tokens (26%)</span>
+        </div>
+      </div>
+      <div class="cp-file-row">
+        <div class="file-pill">CLAUDE.md</div>
+        <div class="file-pill">SPEC.md</div>
+        <div class="file-pill">src/model/serialize.ts</div>
+      </div>
+      <textarea class="cp-textarea" style="min-height: 50px;">Inspect the files listed above. Respect all existing interfaces and do not alter the GPL theme assets.</textarea>
+    </div>
+
+    <div class="bench-section-block">
+      <div class="bench-section-bar">
+        <span class="bench-heading">## [03] Execution Instructions</span>
+        <div class="bench-weight-meter">
+          <div class="weight-bar-outer"><div class="weight-bar-fill" style="width: 45%;"></div></div>
+          <span class="weight-label">120 tokens (34%)</span>
+        </div>
+      </div>
+      <textarea class="cp-textarea" style="min-height: 70px;">1. Synthesize the 4 prototype threads into an interactive unified studio.
+2. Ensure every button, toggle, and modal responds interactively.
+3. Keep the code strictly vanilla HTML/CSS/JS for instant zero-dependency previewing.</textarea>
+    </div>
+  `;
+}
+
+function insertPiece(name) {
+  triggerToast(`+ Inserted piece: "${name}" into canvas`);
+}
+
+function filterPieces(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.piece-chip').forEach(chip => {
+    chip.style.display = chip.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+  });
+}
+
+function copyFusionDoc() {
+  triggerToast('✓ Compiled unified XML document copied to clipboard');
+}
+
+/* ── Zen Mechanical Keyboard ── */
+function openZenKeyboard() {
+  document.getElementById('zen-keyboard').classList.add('show');
+}
+function closeZenKeyboard() {
+  document.getElementById('zen-keyboard').classList.remove('show');
+}
+
+function setupKeyboardListener() {
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    const keyEl = document.querySelector(`.zen-key[data-key="${k}"]`);
+    if (keyEl) {
+      keyEl.classList.add('active');
+      setTimeout(() => keyEl.classList.remove('active'), 250);
+    }
+    if (e.key === 'Escape') {
+      closeZenKeyboard();
+      toggleCheatsheet(false);
+    }
+  });
+}
+
+/* ── Utility Helpers ── */
+function slug(s) {
+  return (s || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+function pad(n) {
+  return n < 10 ? '0' + n : '' + n;
+}
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function triggerToast(msg) {
+  const toast = document.getElementById('studio-toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROTOTYPE 5: SUBAGENT CONTEXT UNITS LOGIC
+───────────────────────────────────────────────────────────────────────────── */
+let activeSwpList = [
+  {
+    id: 'SWP-01-inv',
+    tier: 'fast',
+    modelLabel: 'Fast Tier (Gemini 2.0 Flash / Claude 3.5 Haiku)',
+    role: 'investigator',
+    title: 'Investigate: Pure Model Interfaces & Line Boundaries',
+    objective: 'Read src/model/serialize.ts and points.ts. Extract line numbers and regex for point numbering and Corrector quotes.',
+    readFiles: ['src/model/serialize.ts', 'src/model/points.ts'],
+    writeFiles: [],
+    forbidden: ['Do not edit files', 'Do not run modifying commands', 'Zero speculative refactors'],
+    tokenBudget: 600,
+    outputContract: 'Numbered list of signatures, exported functions, and line ranges.'
+  },
+  {
+    id: 'SWP-02-code',
+    tier: 'worker',
+    modelLabel: 'Worker Tier (Flash Thinking / Sonnet / DeepSeek)',
+    role: 'coder',
+    title: 'Implement: compileSubagentPacket with Strict Boundary Envelopes',
+    objective: 'Implement compileSubagentPacket serializer in src/model/subagent.ts matching rootless XML spec.',
+    readFiles: ['src/model/subagent.ts', 'src/model/types.ts'],
+    writeFiles: ['src/model/subagent.ts'],
+    forbidden: ['Do not touch files outside write_files', 'Zero database connections or external dependencies', 'Preserve all comments'],
+    tokenBudget: 1200,
+    outputContract: 'Unified diff against src/model/subagent.ts only. No chatter.',
+    verify: 'npm run build'
+  },
+  {
+    id: 'SWP-03-verify',
+    tier: 'fast',
+    modelLabel: 'Tool Tier (Local Test Runner / CLI Agent)',
+    role: 'tester',
+    title: 'Verify: Build Gate & Boundary Integrity Check',
+    objective: 'Run npm run build and confirm zero type errors and zero diagnostics warnings.',
+    readFiles: ['src/model/subagent.ts'],
+    writeFiles: [],
+    forbidden: ['Do not touch implementation code'],
+    tokenBudget: 400,
+    outputContract: 'PASS/FAIL report with stdout log summary.',
+    verify: 'npm run build'
+  }
+];
+
+let selectedSwpIndex = 0;
+
+function renderSwpCards() {
+  const container = document.getElementById('swp-packets-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  activeSwpList.forEach((swp, idx) => {
+    const card = document.createElement('div');
+    card.className = `swp-card ${idx === selectedSwpIndex ? 'active' : ''}`;
+    card.onclick = () => selectSwpPacket(idx);
+
+    const tierBadge = swp.tier === 'fast' ? 'badge-pe' : (swp.tier === 'worker' ? 'badge-task' : 'badge-prompt');
+
+    card.innerHTML = `
+      <div class="swp-card-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-cyan);">${swp.id}</span>
+          <span class="badge ${tierBadge}">${swp.role.toUpperCase()}</span>
+        </div>
+        <span style="font-size: 10px; color: var(--text-muted);">${swp.tokenBudget} max tokens</span>
+      </div>
+      <div class="swp-card-title">${escapeHtml(swp.title)}</div>
+      <div style="font-size: 12px; color: var(--text-secondary); margin: 6px 0;">
+        <b>Objective:</b> ${escapeHtml(swp.objective)}
+      </div>
+      <div class="swp-boundary-grid">
+        <div>
+          <span style="color: var(--accent-green); font-weight: 700;">READ BOUNDARY:</span><br>
+          <span style="color: var(--text-main);">${swp.readFiles.join(', ') || 'none'}</span>
+        </div>
+        <div>
+          <span style="color: var(--accent-acid); font-weight: 700;">WRITE BOUNDARY:</span><br>
+          <span style="color: var(--text-main);">${swp.writeFiles.length ? swp.writeFiles.join(', ') : 'NONE (READ-ONLY)'}</span>
+        </div>
+      </div>
+      <div class="swp-forbidden-box">
+        <b>FORBIDDEN:</b> ${swp.forbidden.join(' · ')}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  updateSwpCompiledOutput();
+}
+
+function selectSwpPacket(idx) {
+  selectedSwpIndex = idx;
+  renderSwpCards();
+}
+
+function updateSwpCompiledOutput() {
+  const outEl = document.getElementById('swp-compiled-output');
+  if (!outEl) return;
+  const swp = activeSwpList[selectedSwpIndex] || activeSwpList[0];
+  if (!swp) return;
+
+  const targetFormat = document.getElementById('swp-target-model')?.value || 'xml';
+
+  if (targetFormat === 'xml') {
+    outEl.textContent = `<subagent_packet id="${swp.id}" role="${swp.role}" tier="${swp.tier}">
+  <title>${swp.title}</title>
+  <objective>${swp.objective}</objective>
+  <boundaries>
+    <read_files>${swp.readFiles.join(', ') || 'none'}</read_files>
+    <write_files>${swp.writeFiles.join(', ') || 'none'}</write_files>
+    <forbidden>
+${swp.forbidden.map(f => `      <rule>${f}</rule>`).join('\n')}
+    </forbidden>
+    <token_budget max="${swp.tokenBudget}" />
+  </boundaries>
+  <output_contract format="${swp.role === 'coder' ? 'diff' : 'numbered_points'}">
+    ${swp.outputContract}
+  </output_contract>
+  ${swp.verify ? `  <verification_command>${swp.verify}</verification_command>` : ''}
+</subagent_packet>`;
+  } else if (targetFormat === 'claude') {
+    outEl.textContent = `TASK ID: ${swp.id}
+OBJECTIVE: ${swp.objective}
+FILES TO CHANGE: ${swp.writeFiles.join(', ') || 'none'}
+READ-ONLY CONTEXT: ${swp.readFiles.join(', ') || 'none'}
+STRICT RULES:
+${swp.forbidden.map(f => `- ${f}`).join('\n')}
+OUTPUT CONTRACT: ${swp.outputContract}
+${swp.verify ? `VERIFY: ${swp.verify}` : ''}`;
+  } else {
+    outEl.textContent = `# SUBAGENT PACKET: ${swp.id}
+**Role**: ${swp.role} (${swp.modelLabel})
+**Objective**: ${swp.objective}
+
+### Boundaries
+- **Read**: ${swp.readFiles.join(', ') || 'none'}
+- **Write**: ${swp.writeFiles.join(', ') || 'none'}
+- **Forbidden**: ${swp.forbidden.join(', ')}
+
+### Output Contract
+${swp.outputContract}`;
+  }
+}
+
+function triggerDecomposition() {
+  const goal = document.getElementById('swp-goal-input').value.trim();
+  const rawFiles = document.getElementById('swp-files-input').value.split(',').map(s => s.trim()).filter(Boolean);
+  
+  triggerToast('⚡ Executive Pro model decomposed task into 3 bounded SWPs');
+  
+  activeSwpList = [
+    {
+      id: 'SWP-01-inv',
+      tier: 'fast',
+      modelLabel: 'Fast Tier (Flash / Haiku)',
+      role: 'investigator',
+      title: `Recon: ${goal.slice(0, 35)}...`,
+      objective: `Inspect signatures and dependencies across ${rawFiles.join(', ')}.`,
+      readFiles: rawFiles,
+      writeFiles: [],
+      forbidden: ['No file edits', 'Zero bash modifying commands'],
+      tokenBudget: 500,
+      outputContract: 'Numbered list of symbols and line ranges.'
+    },
+    {
+      id: 'SWP-02-code',
+      tier: 'worker',
+      modelLabel: 'Worker Tier (Flash Thinking / Sonnet)',
+      role: 'coder',
+      title: `Implement: ${goal.slice(0, 35)}...`,
+      objective: goal,
+      readFiles: rawFiles,
+      writeFiles: rawFiles,
+      forbidden: ['No modifications outside write_files', 'Zero external DB / network dependencies', 'No placeholder stubs'],
+      tokenBudget: 1100,
+      outputContract: 'Standard unified diff.',
+      verify: 'npm run build'
+    },
+    {
+      id: 'SWP-03-verify',
+      tier: 'fast',
+      modelLabel: 'Tool Tier (Test Harness)',
+      role: 'tester',
+      title: `Verify: Type check and validation`,
+      objective: `Execute verification command and confirm clean pass.`,
+      readFiles: rawFiles,
+      writeFiles: [],
+      forbidden: ['Do not touch source code'],
+      tokenBudget: 350,
+      outputContract: 'PASS/FAIL report with error logs.',
+      verify: 'npm run build'
+    }
+  ];
+
+  selectedSwpIndex = 0;
+  renderSwpCards();
+}
+
+function copySwpPacket() {
+  const text = document.getElementById('swp-compiled-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    triggerToast('✓ Copied Subagent Work Packet XML');
+  });
+}
+
+function dispatchMockSubagent() {
+  const swp = activeSwpList[selectedSwpIndex];
+  triggerToast(`▶ Dispatched ${swp.id} to ${swp.role} subagent`);
+  
+  const outEl = document.getElementById('swp-compiled-output');
+  const original = outEl.textContent;
+  outEl.textContent = `[EXECUTING SUBAGENT ${swp.id}]...\nModel Tier: ${swp.tier}\nEnforcing write boundaries on: ${swp.writeFiles.join(', ') || 'NONE'}\n\n`;
+
+  setTimeout(() => {
+    outEl.textContent += `[SUBAGENT OUTPUT RECEIVED]\nStatus: SUCCESS\nContract satisfied: ${swp.outputContract}\nTokens consumed: 342 / ${swp.tokenBudget}\nZero boundary violations detected.\n\nReturning verified payload to Pro Executive Model for review.`;
+    setTimeout(() => {
+      triggerToast(`✓ Subagent ${swp.id} completed. Pro review passed.`);
+    }, 800);
+  }, 700);
+}
+</script>
+</body>
+</html>

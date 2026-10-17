@@ -1,0 +1,50 @@
+@layer tokens, base, components;
+@import "tailwindcss";
+@import "@nuxt/ui";
+@import "./tokens.css";
+
+@layer base {
+  /* Neutral surfaces: no tint, no haze. Readable text is neutral. */
+  :root {
+    --ui-bg: var(--t-bg);
+    --ui-bg-muted: var(--t-bg-2);
+    --ui-bg-elevated: var(--t-bg-2);
+    --ui-bg-accented: var(--t-bg-3);
+    --ui-bg-inverted: var(--t-fg);
+    --ui-text: var(--t-fg);
+    --ui-text-dimmed: var(--t-fg-3);
+    --ui-text-muted: var(--t-fg-2);
+    --ui-text-toned: var(--t-fg-2);
+    --ui-text-highlighted: var(--t-fg);
+    --ui-text-inverted: var(--t-bg);
+    --ui-border: var(--t-line);
+    --ui-border-muted: var(--t-line);
+    --ui-border-accented: var(--t-line-2);
+    --ui-border-inverted: var(--t-fg);
+    --ui-primary: var(--t-action);
+    --ui-radius: 0.375rem;
+    accent-color: var(--t-fg);
+    scrollbar-color: var(--t-line-2) transparent;
+    scrollbar-width: thin;
+    interpolate-size: allow-keywords;
+  }
+
+  html, body, #app { block-size: 100%; }
+  body {
+    color-scheme: inherit;
+    margin: 0;
+    background: var(--t-bg);
+    color: var(--t-fg);
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    line-height: 1.5;
+    text-align: start;
+  }
+  :where(button, input, [tabindex]):focus-visible {
+    outline: 2px solid var(--t-fg);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--hue, var(--t-fg)) 30%, transparent);
+  }
+}

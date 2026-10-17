@@ -1,0 +1,149 @@
+.board {
+  container: board / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  block-size: 100%;
+  min-block-size: 0;
+}
+.add {
+  margin: 0;
+}
+.addInput {
+  inline-size: 100%;
+  min-block-size: 1.75rem;
+  font: inherit;
+  font-size: var(--fs-small);
+  color: var(--t-fg);
+  background: var(--t-bg);
+  border: 1px solid var(--t-line-2);
+  border-radius: 6px;
+  padding-block: 0.3rem;
+  padding-inline: 0.6rem;
+}
+.lanes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  flex: 1;
+  min-block-size: 0;
+}
+/* Narrow pane: lanes stack, each still bordered. */
+@container board (inline-size < 30rem) {
+  .lanes {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(8rem, auto);
+    overflow-y: auto;
+  }
+  .lane {
+    min-block-size: 8rem;
+  }
+}
+.lane {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 12rem;
+  border: 1px solid var(--t-line-2);
+  border-radius: 8px;
+  background: var(--t-bg-2);
+}
+.laneHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: safe center;
+  margin: 0;
+  padding-block: 0.35rem;
+  padding-inline: 0.6rem;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--t-fg-2);
+  border-block-end: 1px solid var(--t-line);
+}
+.n {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--t-fg-3);
+}
+.cards {
+  list-style: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+}
+.card {
+  border: 1px solid var(--t-line);
+  border-block-start: 4px solid var(--hue);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--t-bg) var(--t-hue-mix), var(--hue));
+  padding-block: 0.4rem;
+  padding-inline: 0.5rem;
+  cursor: grab;
+}
+.doneCard {
+  opacity: 0.7;
+}
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+.cardTitle {
+  flex: 1;
+  min-inline-size: 0;
+  font-family: var(--font-prose);
+  font-size: var(--fs-body);
+  color: var(--t-fg);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.checks {
+  list-style: none;
+  margin-block: 0.25rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.check {
+  font-size: var(--fs-small);
+}
+.checked {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+.checkInput {
+  inline-size: 100%;
+  min-block-size: 1.5rem;
+  margin-block-start: 0.3rem;
+  font: inherit;
+  font-size: var(--fs-small);
+  color: var(--t-fg);
+  background: transparent;
+  border: none;
+  border-block-end: 1px dashed var(--t-line-2);
+  padding-block: 0.15rem;
+}
+.cardFoot {
+  display: flex;
+  align-items: safe center;
+  margin-block-start: 0.2rem;
+}
+.spacer {
+  flex: 1;
+}
+.hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  inline-size: 1px !important;
+  block-size: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
