@@ -1,0 +1,145 @@
+# PrompTOR — Product Requirements Document
+
+**Status:** Active baseline  
+**Last consolidated:** 2026-09-22  
+**Source of truth:** Consolidated from SPEC.md, PLAN.md, STATUS.md, and product screenshots. Later explicit user direction supersedes this document.
+
+## 1. Purpose
+
+PrompTOR replaces a chat textbox as the place to compose substantial prompts and replies to agents. It reduces repeated context reconstruction, mechanical tagging, and premature sending while preserving the user's ability to build a message from independently editable parts.
+
+This product is an authoring tool, not an agent bridge or task manager. Copy/paste is the current delivery workflow.
+
+## 2. Problem
+
+Users repeatedly reconstruct persona, constraints, decisions, and response context across agent conversations. A single text field makes reuse, review, revisions, and collecting several annotations difficult. Existing chat workflows can send a partial response before the user has gathered all feedback.
+
+## 3. Product principles
+
+- Open directly into writing; avoid navigation and team-oriented scaffolding.
+- Independently editable sections are intentional. A single exported prompt does not require a single editor field.
+- Explicit copy/send is the only action that produces an output. Editing, saving, and annotating never send or start agent work.
+- Preserve user content and make persistence failures visible and recoverable.
+- Reuse should reduce retyping without silently inserting irrelevant material.
+- Keep the reading surface compact through folding, not tiny type or clipping.
+- Preserve the current visual direction unless a scoped design change is requested.
+
+## 4. Users and primary jobs
+
+### Prompt author
+
+- Compose a substantial base prompt from reusable sections.
+- Build a reply that carries selected context and decisions forward.
+- Collect several quotations, agreements, corrections, and questions before copying one complete response.
+- Inspect and copy safe, predictable output.
+- Recover work after reopening the actual host environment.
+
+## 5. Functional requirements
+
+### 5.1 Section-based authoring
+
+A message consists of independently editable sections.
+
+- Section headings are freely editable; suggested names are optional.
+- Typical names include Role, Context, Instructions, Constraints, Agreements, Corrections, Proposed edits, Questions, and Acceptance criteria. These are examples, not a fixed schema.
+- Users can add, reorder, collapse, include/exclude, and remove sections.
+- Destructive changes must be recoverable.
+- Collapsing marks content as settled for reading purposes but does not silently exclude it from output.
+- Paragraphs and lists belong inside sections.
+- Enter inserts a newline; lists continue and end naturally; no accidental send occurs.
+- Users can add named or numbered points within sections when useful.
+
+### 5.2 Reuse across three lifetimes
+
+| Lifetime | Purpose | Requirements |
+| --- | --- | --- |
+| Long-term base | Recurring persona, role, context, and constraints | Searchable library; reuse whole prompts, sections, or selected text; inserted content is an independent copy. |
+| Conversation | Mode/lead-in, continuation context, settled decisions, and open questions across turns | Reusable without promoting every fragment to the long-term library; items can later be promoted or removed. |
+| Current message | New requests, quotations, agreements, and changes for one turn | Editable draft, assembled only by explicit copy. |
+
+- A saved starting arrangement may include headings, lead-in text, reusable content, points, and initial folded defaults.
+- Loading an arrangement inserts independent copies and must not overwrite an active draft.
+- Base material must be selectable for a reply rather than included wholesale by default.
+- Inserting a saved piece targets the focused section directly. Adding it as a new section remains available; no-focus handling must be clear.
+- Existing saved prompts and backups must remain compatible when the data model changes.
+
+### 5.3 Annotation and reply composition
+
+- The author can paste or retain an agent response as a visible source while composing a reply.
+- The author can capture multiple exact selections from that source.
+- Each annotation retains the selected quotation, optional comment, source/provenance, and order.
+- An annotation without a comment is valid.
+- Authors can revise, remove, and route quotations into useful reply sections.
+- Capturing or editing annotations changes only the draft; it never sends content or starts work.
+- Source content must remain available while collecting annotations.
+- Manual selection is the required starting interaction. Automatic response splitting is optional and not a dependency.
+
+### 5.4 Output and boundaries
+
+- Assemble included sections in chosen order into one copyable output.
+- XML is the default export; Markdown and plain text are supported alternatives.
+- Structural wrappers are generated from section structure rather than manually typed and repaired by users.
+- Literal text, quoted material, generated wrappers, and Markdown must retain distinct semantics.
+- Preserve code, angle brackets, ampersands, multiline quotes, literal `&lt;`, literal `&amp;`, and code fences without converting user content into structure or unsafe HTML.
+- Inner Markdown headings must preserve hierarchy relative to their section wrapper.
+- Exact-output inspection is optional and collapsed by default.
+
+### 5.5 Persistence, backup, and recovery
+
+- Persist drafts reliably in the actual host the author uses.
+- Clearly expose storage-write failures and avoid overwriting unreadable state.
+- Preserve recoverable backups and support export/import.
+- Failed imports must roll back safely and imports must preserve the active draft.
+- Backup/export must preserve long-term, conversation, and current-message state.
+- Storage boundaries must be documented: file URLs, ports, and origins can have separate browser storage.
+
+### 5.6 Reading and interaction quality
+
+- Visually distinguish section hierarchy and states with meaningful colour and visible focus.
+- Support folding and completed/settled presentation.
+- Keep primary actions recognizable; place low-frequency backup/download controls outside the core writing path.
+- Avoid repeated per-location “save selected text” controls; offer a discoverable shared/contextual action.
+- Maintain keyboard behavior, pointer focus, Undo, readable density, responsive layout, and mobile usability.
+- Future desired surface: live Markdown in sections, coloured heading hierarchy, folded settled content, and completed-checklist styling. This requires a separate editor prototype before replacing working editor internals.
+
+## 6. Acceptance scenarios
+
+1. **Base to reply:** Save persona/context/constraints; create a reply with response context, agreements, proposed edits, and questions; pull relevant base material without changing the original.
+2. **Conversation continuity:** Carry “do not build yet” and settled decisions across two replies; recover conversation context and active draft after reopening.
+3. **Collect before sending:** Capture three source passages, comment on two, revise one comment, retain one uncommented selection, and copy one assembled response with no intermediate send.
+4. **Reusable starting point:** Load a filled arrangement with settled sections folded; edit the new task without overwriting an existing draft.
+5. **Safe output:** Export generated wrappers around source containing Markdown, literal entities, and code; verify boundaries and preserved content.
+6. **Actual persistence:** Reopen in the actual selected host and recover all state; backup export/import preserves all three lifetimes.
+
+## 7. Current implementation baseline
+
+The independent editor is `promptor-editor.html`, using the `promptor-editor-v1` storage key. It is separate from `promptor.html` and is not a replacement for it.
+
+Implemented behavior includes section editing, reorder/fold/include/remove/Undo, safe XML export, Markdown/plain-text export, copy shortcuts, saved prompts and section insertion, filled arrangements, keep/next-reply state, source annotations, safe Markdown reading, text-file sections, backup merge/import/export, and compatibility reading of earlier-app storage when same-origin access permits.
+
+Automated verification has covered export round trips, editing flows, annotation collection, reuse independence, persistence in isolated browser contexts, recovery, responsive layout, and more. Actual persistence in the user's in-app browser remains to be manually verified.
+
+## 8. Explicit non-goals / deferred scope
+
+- Direct model bridge, send/receive workflow, and automatic agent actions.
+- Nested/sub-level block authoring and numbered tag trees.
+- Task tracking, to-dos, team collaboration, multi-model evaluation, cost dashboards, variables/interpolation, linked includes, IDE integration, Vim mode, and file-backed Git storage.
+- Automatic response splitting.
+- Replacing the editor internals with a rich live-Markdown editor without a scoped prototype.
+
+## 9. Open questions
+
+- Quote routing at capture time versus collect-then-sort.
+- Conversation naming, archival, lifecycle, and multiple simultaneous conversations.
+- Exact live-Markdown behavior, heading mapping, selection preservation, and tag/code presentation.
+- Whether “settled” becomes explicit metadata or remains a folded presentation default.
+- Actual host/browser persistence behavior.
+- Ownership and active development status of older `promptor.html` and `promptor-next.html`.
+
+## 10. Delivery guardrails
+
+- Do not reopen the product premise or ask the user to restate it.
+- Preserve existing work and saved user data.
+- Do not modify the older app or candidate without explicit authorization.
+- Do not add a framework, backend, installs, or broad refactor merely to satisfy an increment.
+- For each change, verify actual behavior and appearance, distinguish observed from inferred results, update status documentation, and stop at the authorized scope.
