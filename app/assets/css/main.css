@@ -3,7 +3,264 @@
 
 @source "../../../content/**/*";
 
-/* Compact density: shorter navbar/sidebar header than the 4rem default. */
+/*
+ * Promptor themes, built only from Nuxt UI's own theming:
+ *   1. palettes (below) are aliased to semantic colors in app.config.ts `ui.colors`;
+ *   2. surfaces, text, borders and accents are Nuxt UI's `--ui-*` variables,
+ *      overridden per theme on `:root.theme-<id>` (ids in app/utils/themes.ts);
+ *   3. glows are Tailwind shadow tokens that component variants use (app.config.ts).
+ *
+ * Default theme "Acid Obsidian" = extractions/component_designs/*.png. Hex values
+ * are read from the sheets' pixels; each palette's 400 shade is the sheet color,
+ * because Nuxt UI uses shade 400 for every semantic color in dark mode.
+ */
+
+@theme static {
+  /* acid, primary: COPY, PRIMARY ACTION, PROMPT badge, field titles, toast */
+  --color-acid-50: color-mix(in oklab, #e8ff47 10%, white);
+  --color-acid-100: color-mix(in oklab, #e8ff47 20%, white);
+  --color-acid-200: color-mix(in oklab, #e8ff47 40%, white);
+  --color-acid-300: color-mix(in oklab, #e8ff47 70%, white);
+  --color-acid-400: #e8ff47;
+  --color-acid-500: color-mix(in oklab, #e8ff47 85%, black);
+  --color-acid-600: color-mix(in oklab, #e8ff47 70%, black);
+  --color-acid-700: color-mix(in oklab, #e8ff47 55%, black);
+  --color-acid-800: color-mix(in oklab, #e8ff47 42%, black);
+  --color-acid-900: color-mix(in oklab, #e8ff47 32%, black);
+  --color-acid-950: color-mix(in oklab, #e8ff47 20%, black);
+
+  /* miku teal, secondary: SECONDARY ACTION, wordmark "TOR", bridge online, XML tags */
+  --color-miku-50: color-mix(in oklab, #39d4c8 10%, white);
+  --color-miku-100: color-mix(in oklab, #39d4c8 20%, white);
+  --color-miku-200: color-mix(in oklab, #39d4c8 40%, white);
+  --color-miku-300: color-mix(in oklab, #39d4c8 70%, white);
+  --color-miku-400: #39d4c8;
+  --color-miku-500: color-mix(in oklab, #39d4c8 85%, black);
+  --color-miku-600: color-mix(in oklab, #39d4c8 70%, black);
+  --color-miku-700: color-mix(in oklab, #39d4c8 55%, black);
+  --color-miku-800: color-mix(in oklab, #39d4c8 42%, black);
+  --color-miku-900: color-mix(in oklab, #39d4c8 32%, black);
+  --color-miku-950: color-mix(in oklab, #39d4c8 20%, black);
+
+  /* ember amber, tertiary + warning: <XML> segment, BLOCKED, file.md, bridge offline */
+  --color-ember-50: color-mix(in oklab, #ffb224 10%, white);
+  --color-ember-100: color-mix(in oklab, #ffb224 20%, white);
+  --color-ember-200: color-mix(in oklab, #ffb224 40%, white);
+  --color-ember-300: color-mix(in oklab, #ffb224 70%, white);
+  --color-ember-400: #ffb224;
+  --color-ember-500: color-mix(in oklab, #ffb224 85%, black);
+  --color-ember-600: color-mix(in oklab, #ffb224 70%, black);
+  --color-ember-700: color-mix(in oklab, #ffb224 55%, black);
+  --color-ember-800: color-mix(in oklab, #ffb224 42%, black);
+  --color-ember-900: color-mix(in oklab, #ffb224 32%, black);
+  --color-ember-950: color-mix(in oklab, #ffb224 20%, black);
+
+  /* hot pink, magenta: DELETE, VIM segment, + FILE */
+  --color-hot-50: color-mix(in oklab, #ff4da6 10%, white);
+  --color-hot-100: color-mix(in oklab, #ff4da6 20%, white);
+  --color-hot-200: color-mix(in oklab, #ff4da6 40%, white);
+  --color-hot-300: color-mix(in oklab, #ff4da6 70%, white);
+  --color-hot-400: #ff4da6;
+  --color-hot-500: color-mix(in oklab, #ff4da6 85%, black);
+  --color-hot-600: color-mix(in oklab, #ff4da6 70%, black);
+  --color-hot-700: color-mix(in oklab, #ff4da6 55%, black);
+  --color-hot-800: color-mix(in oklab, #ff4da6 42%, black);
+  --color-hot-900: color-mix(in oklab, #ff4da6 32%, black);
+  --color-hot-950: color-mix(in oklab, #ff4da6 20%, black);
+
+  /* azure, info: TASK badge, here.ts file pill */
+  --color-azure-50: color-mix(in oklab, #5cc8ff 10%, white);
+  --color-azure-100: color-mix(in oklab, #5cc8ff 20%, white);
+  --color-azure-200: color-mix(in oklab, #5cc8ff 40%, white);
+  --color-azure-300: color-mix(in oklab, #5cc8ff 70%, white);
+  --color-azure-400: #5cc8ff;
+  --color-azure-500: color-mix(in oklab, #5cc8ff 85%, black);
+  --color-azure-600: color-mix(in oklab, #5cc8ff 70%, black);
+  --color-azure-700: color-mix(in oklab, #5cc8ff 55%, black);
+  --color-azure-800: color-mix(in oklab, #5cc8ff 42%, black);
+  --color-azure-900: color-mix(in oklab, #5cc8ff 32%, black);
+  --color-azure-950: color-mix(in oklab, #5cc8ff 20%, black);
+
+  /* jade green, success: SAVE, OPTIMIZE, DONE, COPIED, SAVED, modal title */
+  --color-jade-50: color-mix(in oklab, #00dd5d 10%, white);
+  --color-jade-100: color-mix(in oklab, #00dd5d 20%, white);
+  --color-jade-200: color-mix(in oklab, #00dd5d 40%, white);
+  --color-jade-300: color-mix(in oklab, #00dd5d 70%, white);
+  --color-jade-400: #00dd5d;
+  --color-jade-500: color-mix(in oklab, #00dd5d 85%, black);
+  --color-jade-600: color-mix(in oklab, #00dd5d 70%, black);
+  --color-jade-700: color-mix(in oklab, #00dd5d 55%, black);
+  --color-jade-800: color-mix(in oklab, #00dd5d 42%, black);
+  --color-jade-900: color-mix(in oklab, #00dd5d 32%, black);
+  --color-jade-950: color-mix(in oklab, #00dd5d 20%, black);
+
+  /* scarlet, error: FAILED, RUN FAILED */
+  --color-scarlet-50: color-mix(in oklab, #ff4d4d 10%, white);
+  --color-scarlet-100: color-mix(in oklab, #ff4d4d 20%, white);
+  --color-scarlet-200: color-mix(in oklab, #ff4d4d 40%, white);
+  --color-scarlet-300: color-mix(in oklab, #ff4d4d 70%, white);
+  --color-scarlet-400: #ff4d4d;
+  --color-scarlet-500: color-mix(in oklab, #ff4d4d 85%, black);
+  --color-scarlet-600: color-mix(in oklab, #ff4d4d 70%, black);
+  --color-scarlet-700: color-mix(in oklab, #ff4d4d 55%, black);
+  --color-scarlet-800: color-mix(in oklab, #ff4d4d 42%, black);
+  --color-scarlet-900: color-mix(in oklab, #ff4d4d 32%, black);
+  --color-scarlet-950: color-mix(in oklab, #ff4d4d 20%, black);
+
+  /*
+   * navy, neutral: the sheets' surfaces and text. Nuxt UI dark mode reads
+   * 900 = page (#0f1119), 800 = cards/fields (#171b27), 200 = text,
+   * 300 = toned (#b6bfd4), 400 = muted (#9aa5be), 500 = dimmed (#808ea8).
+   * 700/600 are the hairlines (#222a3c / #313c54), 950 the canvas (#07080e).
+   * 50/100 only complete the scale; dark mode never reads them.
+   */
+  --color-navy-50: #f5f7fb;
+  --color-navy-100: #e9edf5;
+  --color-navy-200: #dfe6f0;
+  --color-navy-300: #b6bfd4;
+  --color-navy-400: #9aa5be;
+  --color-navy-500: #808ea8;
+  --color-navy-600: #313c54;
+  --color-navy-700: #222a3c;
+  --color-navy-800: #171b27;
+  --color-navy-900: #0f1119;
+  --color-navy-950: #07080e;
+}
+
+@theme {
+  /* Sheet typography: mono body, Orbitron for buttons/wordmark, Rajdhani for field titles.
+     Loaded by @nuxt/fonts. */
+  --font-sans: "JetBrains Mono", ui-monospace, monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Orbitron", sans-serif;
+  --font-heading: "Rajdhani", sans-serif;
+
+  /* Glow table (starting-point_for_background-glow.png): every glow is 0 0 14px.
+     The values are per theme variables, set below. */
+  --shadow-glow-primary: var(--glow-primary);
+  --shadow-glow-secondary: var(--glow-secondary);
+  --shadow-glow-tertiary: var(--glow-tertiary);
+  --shadow-glow-magenta: var(--glow-magenta);
+  --shadow-glow-cyan: var(--glow-cyan);
+  --shadow-glow-amber: var(--glow-amber);
+  --shadow-glow-acid: var(--glow-acid);
+}
+
 :root {
+  /* Compact density: shorter navbar/sidebar header than the 4rem default. */
   --ui-header-height: --spacing(10);
+
+  /* Glow table, live-app column: color and strength per token. primary, secondary
+     and tertiary follow the theme's semantic colors (exactly #e8ff47 / #39d4c8 /
+     #ffb224 in the default theme); the other four are fixed accents. */
+  --glow-primary: 0 0 14px color-mix(in srgb, var(--ui-primary) 40%, transparent);
+  --glow-secondary: 0 0 14px color-mix(in srgb, var(--ui-secondary) 45%, transparent);
+  --glow-tertiary: 0 0 14px color-mix(in srgb, var(--ui-tertiary) 45%, transparent);
+  --glow-magenta: 0 0 14px rgb(217 70 239 / 0.4); /* #d946ef */
+  --glow-cyan: 0 0 14px rgb(6 182 212 / 0.45); /* #06b6d4 */
+  --glow-amber: 0 0 14px rgb(234 179 8 / 0.45); /* #eab308 */
+  --glow-acid: 0 0 14px rgb(232 255 71 / 0.4); /* #e8ff47 */
+}
+
+/* Default theme hairlines: the sheets draw borders in #222a3c on #171b27 cards,
+   one step lighter than Nuxt UI's dark default (border = card color).
+   Chart series use the theme's own accents instead of Nuxt UI's Tailwind
+   blue/violet/amber/rose/cyan, so every theme's charts follow its colors. */
+.dark {
+  --ui-border: var(--ui-color-neutral-700);
+  --ui-border-muted: var(--ui-color-neutral-800);
+  --ui-border-accented: var(--ui-color-neutral-600);
+
+  --ui-chart-2: var(--ui-info);
+  --ui-chart-3: var(--ui-magenta);
+  --ui-chart-4: var(--ui-tertiary);
+  --ui-chart-5: var(--ui-error);
+  --ui-chart-6: var(--ui-secondary);
+}
+
+/*
+ * Bearded Arc: the dark VS Code theme in the uploads, colors copied from
+ * extractions/promptor_served_implementation/theme/bearded-theme-arc.json
+ * (key named beside each value). A flat theme, so no glows.
+ */
+:root.theme-arc {
+  --ui-bg: #1c2433; /* editor.background */
+  --ui-bg-muted: #181f2c; /* sideBar.background */
+  --ui-bg-elevated: #253043; /* menu.background */
+  --ui-bg-accented: #37486473; /* list.activeSelectionBackground */
+  --ui-bg-inverted: #d0d7e4; /* editor.foreground */
+
+  --ui-text-dimmed: #586b90; /* input.placeholderForeground */
+  --ui-text-muted: #8e9dba; /* editorLineNumber.activeForeground */
+  --ui-text-toned: #afbbd2; /* foreground */
+  --ui-text: #d0d7e4; /* editor.foreground */
+  --ui-text-highlighted: #ffffff; /* terminal.ansiBrightWhite */
+  --ui-text-inverted: #1c2433; /* editor.background */
+
+  --ui-border: #11161f; /* panel.border */
+  --ui-border-muted: #11161f; /* sideBar.border */
+  --ui-border-accented: #3b4860; /* input.border */
+  --ui-border-inverted: #d0d7e4; /* editor.foreground */
+
+  --ui-primary: #8196b5; /* badge.background, tab.activeBorderTop */
+  --ui-secondary: #22ecdb; /* terminal.ansiCyan */
+  --ui-tertiary: #ff955c; /* notificationsWarningIcon.foreground */
+  --ui-magenta: #f38cec; /* terminal.ansiMagenta */
+  --ui-info: #69c3ff; /* notificationsInfoIcon.foreground */
+  --ui-success: #3cec85; /* terminal.ansiGreen */
+  --ui-warning: #eacd61; /* editorWarning.foreground */
+  --ui-error: #e35535; /* errorForeground */
+
+  --glow-primary: 0 0 #0000;
+  --glow-secondary: 0 0 #0000;
+  --glow-tertiary: 0 0 #0000;
+  --glow-magenta: 0 0 #0000;
+  --glow-cyan: 0 0 #0000;
+  --glow-amber: 0 0 #0000;
+  --glow-acid: 0 0 #0000;
+}
+
+/*
+ * Minty Neutral (dark scheme): copied from
+ * extractions/tauri_with_design_files/src/assets/tokens.css and its main.css mapping.
+ * Pure neutral surfaces, one inverted action color, the _MINTY hues for states.
+ * The violet _MINTY hue is not used (purple is banned). "No tint, no haze": no glows.
+ */
+:root.theme-minty {
+  --ui-radius: 0.375rem;
+
+  --ui-bg: #000000; /* --neutral-dark-bg */
+  --ui-bg-muted: #0e0e0e; /* --neutral-dark-bg-2 */
+  --ui-bg-elevated: #0e0e0e; /* --neutral-dark-bg-2 */
+  --ui-bg-accented: #1c1c1c; /* --neutral-dark-bg-3 */
+  --ui-bg-inverted: #f2f2f2; /* --neutral-dark-fg */
+
+  --ui-text-dimmed: #8a8a8a; /* --neutral-dark-fg-3 */
+  --ui-text-muted: #b8b8b8; /* --neutral-dark-fg-2 */
+  --ui-text-toned: #b8b8b8; /* --neutral-dark-fg-2 */
+  --ui-text: #f2f2f2; /* --neutral-dark-fg */
+  --ui-text-highlighted: #f2f2f2; /* --neutral-dark-fg */
+  --ui-text-inverted: #000000; /* --neutral-dark-bg */
+
+  --ui-border: #2e2e2e; /* --neutral-dark-line */
+  --ui-border-muted: #2e2e2e; /* --neutral-dark-line */
+  --ui-border-accented: #5a5a5a; /* --neutral-dark-line-2 */
+  --ui-border-inverted: #f2f2f2; /* --neutral-dark-fg */
+
+  --ui-primary: #f2f2f2; /* --t-action = --t-fg */
+  --ui-secondary: oklch(0.75 0.14 200); /* --minty-cyan */
+  --ui-tertiary: oklch(0.78 0.17 75); /* --minty-amber */
+  --ui-info: oklch(0.62 0.18 255); /* --minty-blue */
+  --ui-success: oklch(0.72 0.19 150); /* --minty-green */
+  --ui-warning: oklch(0.78 0.17 75); /* --minty-amber */
+  --ui-error: oklch(0.62 0.22 25); /* --minty-red */
+  /* --ui-magenta: Minty has no pink hue, so the system's #ff4da6 stays. */
+
+  --glow-primary: 0 0 #0000;
+  --glow-secondary: 0 0 #0000;
+  --glow-tertiary: 0 0 #0000;
+  --glow-magenta: 0 0 #0000;
+  --glow-cyan: 0 0 #0000;
+  --glow-amber: 0 0 #0000;
+  --glow-acid: 0 0 #0000;
 }

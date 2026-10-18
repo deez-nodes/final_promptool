@@ -1,3 +1,29 @@
+<script setup lang="ts">
+// Theme choice: a cookie, so the server renders the chosen `theme-<id>` class on
+// <html> and the first paint already has the right colors. An unknown value
+// (e.g. a theme that was removed) falls back to the default.
+const themeCookie = useCookie<string>(THEME_COOKIE, {
+  default: () => DEFAULT_THEME,
+  maxAge: 60 * 60 * 24 * 365,
+  sameSite: 'lax'
+})
+
+const theme = computed<ThemeId>({
+  get: () => (isThemeId(themeCookie.value) ? themeCookie.value : DEFAULT_THEME),
+  set: (value) => {
+    themeCookie.value = value
+  }
+})
+
+const themeItems = THEMES.map(({ id, label }) => ({ label, value: id }))
+
+useHead({
+  htmlAttrs: {
+    class: () => themeClass(theme.value)
+  }
+})
+</script>
+
 <template>
   <UApp>
     <UDashboardGroup>
@@ -47,6 +73,17 @@
           <UDashboardNavbar title="Editor">
             <template #leading>
               <UDashboardSidebarCollapse />
+            </template>
+
+            <template #right>
+              <USelect
+                v-model="theme"
+                :items="themeItems"
+                icon="i-lucide-palette"
+                size="sm"
+                aria-label="Theme"
+                class="w-44"
+              />
             </template>
           </UDashboardNavbar>
         </template>
