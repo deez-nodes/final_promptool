@@ -1,0 +1,10 @@
+import { build } from 'esbuild';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+const result = await build({ entryPoints: ['src/main.jsx'], bundle: true, write: false, minify: true, format: 'iife', target: ['chrome110', 'edge110', 'firefox115'], jsx: 'automatic', define: { 'process.env.NODE_ENV': '"production"' }, legalComments: 'inline' });
+const script = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
+const style = await readFile('src/styles.css', 'utf8');
+const html = `<!doctype html>\n<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="description" content="A local prompt workbench with a reusable library and structured replies."><title>Promptor — local workbench</title><style>${style}</style></head><body><div id="root"></div><script>${script}</script></body></html>`;
+await mkdir('dist', { recursive: true });
+await writeFile('dist/Promptor.html', html);
+await writeFile('../Promptor.html', html);
+console.log(`Built ../Promptor.html (${Math.round(Buffer.byteLength(html) / 1024)} KB). Open directly; no server needed.`);

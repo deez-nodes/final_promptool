@@ -1,0 +1,50 @@
+.row {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: safe center;
+  gap: 0.4rem;
+  padding-block: 0.5rem;
+  padding-inline: 0.25rem;
+}
+.label {
+  font-size: var(--fs-small);
+  color: var(--t-fg-2);
+}
+.name {
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+  font: inherit;
+  font-size: var(--fs-small);
+  color: var(--t-fg);
+  background: var(--t-bg);
+  border: 1px solid var(--t-line-2);
+  border-radius: 6px;
+  padding-block: 0.3rem;
+  padding-inline: 0.6rem;
+  min-block-size: 1.75rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-block-size: 1.75rem;
+  font: inherit;
+  font-size: var(--fs-small);
+  color: var(--t-fg);
+  background: var(--t-bg);
+  border: 1px solid var(--t-line-2);
+  border-radius: 999px;
+  padding-block: 0.2rem;
+  padding-inline: 0.5rem 0.7rem;
+  cursor: pointer;
+}
+.chip:hover {
+  background: color-mix(in oklab, var(--t-bg) var(--t-hue-mix), var(--hue));
+  border-color: var(--hue);
+}
+.dot {
+  inline-size: 0.7rem;
+  block-size: 0.7rem;
+  border-radius: 50%;
+  background: var(--hue);
+}

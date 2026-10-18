@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptTOR Studio - Production Prompt & Workflow Architect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: {
+              950: '#181818',
+              900: '#222222',
+              850: '#2a2a2a',
+              800: '#363636',
+              750: '#424242',
+              700: '#555555',
+              600: '#727272'
+            },
+            accent: {
+              emerald: '#10b981',
+              cyan: '#06b6d4',
+              amber: '#f59e0b',
+              violet: '#8b5cf6',
+              rose: '#f43f5e'
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'SF Mono', 'Menlo', 'Consolas', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Crisp utilitarian scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #181818;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #363636;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555555;
+    }
+    
+    /* Code textarea reset */
+    textarea {
+      field-sizing: content;
+    }
+  </style>
+</head>
+<body class="bg-surface-950 text-slate-300 font-sans antialiased h-screen flex flex-col select-none overflow-hidden text-xs">
+
+  <!-- Top App Bar -->
+  <header class="h-10 border-b border-surface-800 bg-surface-900 px-3 flex items-center justify-between z-20">
+    <div class="flex items-center gap-3">
+      <!-- Window controls -->
+      <div class="flex items-center gap-1.5 mr-1">
+        <div class="w-2.5 h-2.5 rounded-full bg-rose-500 hover:bg-rose-500 cursor-pointer"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-amber-500 hover:bg-amber-500 cursor-pointer"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 hover:bg-emerald-500 cursor-pointer"></div>
+      </div>
+      
+      <!-- Brand & Mode Pill -->
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-xs font-black tracking-wider text-slate-200">
+          <span class="text-white">PROMPT</span><span class="text-emerald-400">TOR</span>
+        </span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-800 text-emerald-400 font-mono font-bold tracking-tight border border-emerald-500">STUDIO</span>
+      </div>
+
+      <!-- Mode Toggle Switch (Base Prompt vs Mid-task reply) -->
+      <div class="flex items-center bg-surface-950 p-0.5 rounded border border-surface-800 ml-4 font-mono">
+        <button id="tab-base-btn" onclick="switchWorkflowMode('base')" class="px-3 py-1 rounded bg-surface-800 text-emerald-400 font-medium transition-all ">
+          Base prompt
+        </button>
+        <button id="tab-midtask-btn" onclick="switchWorkflowMode('midtask')" class="px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition-all">
+          Mid-task reply
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Telemetry & Export Format Buttons -->
+    <div class="flex items-center gap-3 font-mono">
+      <div class="flex items-center gap-2 text-[11px] text-slate-400 bg-surface-950 px-2.5 py-1 rounded border border-surface-800">
+        <span>Est: <strong id="token-counter" class="text-emerald-400 font-bold">~142 toks</strong></span>
+        <span class="text-surface-700">|</span>
+        <span id="char-counter" class="text-slate-300">620 chars</span>
+        <span class="text-surface-700">|</span>
+        <span id="cost-counter" class="text-cyan-400 font-semibold">$0.00042 / run</span>
+      </div>
+
+      <div class="flex items-center bg-surface-950 p-0.5 rounded border border-surface-800">
+        <button onclick="setFormat('xml')" id="fmt-xml" class="px-2 py-0.5 rounded bg-surface-800 text-emerald-400 font-medium">XML</button>
+        <button onclick="setFormat('markdown')" id="fmt-markdown" class="px-2 py-0.5 rounded text-slate-400 hover:text-slate-200">MD</button>
+        <button onclick="setFormat('json')" id="fmt-json" class="px-2 py-0.5 rounded text-slate-400 hover:text-slate-200">JSON</button>
+      </div>
+
+      <!-- Quick Copy Action Button -->
+      <button onclick="copyActivePrompt()" class="flex items-center gap-1.5 px-3 py-1 rounded bg-surface-800 text-emerald-300 border border-emerald-500 hover:bg-surface-750 transition-all font-mono font-semibold">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        <span>Copy Prompt</span>
+        <kbd class="ml-1 text-[9px] px-1 py-0.2 rounded bg-surface-900 border border-surface-700 text-slate-300">Ctrl+↵</kbd>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 min-h-0 flex overflow-hidden">
+    
+    <!-- LEFT SIDEBAR: Library & Templates -->
+    <aside class="w-64 border-r border-surface-800 bg-surface-900 flex flex-col justify-between flex-shrink-0">
+      <div class="p-2.5 border-b border-surface-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">Library</span>
+          <button onclick="createNewPrompt()" class="px-2 py-0.5 rounded bg-surface-800 hover:bg-surface-750 text-emerald-400 border border-surface-700 font-mono text-[10px] font-semibold transition-colors">
+            + New Prompt
+          </button>
+        </div>
+        
+      </div>
+      <div id="library-panels" class="flex-1 min-h-0 flex flex-col"></div>
+
+      <!-- Quick Hotkey HUD Footer -->
+      <div class="p-2 border-t border-surface-800 bg-surface-900 font-mono text-[10px] text-slate-500 flex items-center justify-between">
+        <span>Hotkey Overlay</span>
+        <span class="px-1.5 py-0.5 rounded bg-surface-850 text-slate-300 border border-surface-750">⌥ Space</span>
+      </div>
+    </aside>
+
+    <!-- CENTER CANVAS: Active Editing Area -->
+    <main class="flex-1 flex flex-col bg-surface-950 overflow-hidden">
+      
+      <!-- Prompt Header & Metadata Row -->
+      <div class="h-12 border-b border-surface-800 bg-surface-900 px-5 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <input 
+            id="prompt-title-input" 
+            type="text" 
+            value="Full-Stack Software Architect" 
+            onchange="updateActiveTitle(this.value)"
+            class="bg-inherit text-sm font-bold text-slate-100 font-mono focus:outline-none border-b border-transparent focus:border-emerald-400 hover:border-surface-700 px-1 py-0.5 transition-all w-80"
+          />
+          <span class="px-2 py-0.5 rounded bg-surface-800 text-emerald-400 border border-emerald-500 font-mono text-[10px]">
+            ACTIVE TEMPLATE
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Interpolation Toggle -->
+          <label class="flex items-center gap-1.5 text-xs font-mono text-slate-400 cursor-pointer hover:text-slate-200">
+            <input type="checkbox" id="interpolate-toggle" checked onchange="renderRawOutput()" class="rounded bg-surface-900 border-surface-700 text-emerald-500 focus:ring-0" />
+            <span>Interpolate {{vars}}</span>
+          </label>
+          <div class="h-4 w-[1px] bg-surface-800 mx-1"></div>
+          <!-- Add Section Dropdown -->
+          <button onclick="addNewSectionPrompt()" class="flex items-center gap-1 px-2.5 py-1 rounded bg-surface-850 text-slate-300 border border-surface-750 hover:bg-surface-800 hover:text-white font-mono text-xs font-medium">
+            <span>+ Add Section</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Sections Scrollable Canvas -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-3.5" id="sections-container">
+        <!-- Content dynamically injected based on Base or Mid-Task mode -->
+      </div>
+      <!-- Editor actions -->
+      <div class="p-3 border-t border-surface-800 bg-surface-900 flex items-center justify-end gap-2">
+        <button onclick="saveActivePrompt()" class="px-3 py-1.5 rounded bg-surface-800 hover:bg-surface-750 text-slate-200 border border-surface-700 font-mono text-xs font-semibold text-center transition-colors">
+          Save Preset
+        </button>
+        <button onclick="resetToDefaults()" class="px-2.5 py-1.5 rounded bg-surface-850 hover:bg-surface-800 text-rose-400 border border-surface-750 font-mono text-xs transition-colors" title="Reset current template">
+          ↺
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    // State representation
+    let currentMode = 'base'; // 'base' | 'midtask'
+    let currentFormat = 'xml'; // 'xml' | 'markdown' | 'json'
+    let compiledPrompt = '';
+
+    // Mock Library Prompts
+    const promptLibrary = [
+      {
+        id: 'arch-1',
+        title: 'Full-Stack Software Architect',
+        type: 'base',
+        tags: 'system · instructions · schema',
+        sections: [
+          {
+            id: 'sec-1',
+            tag: 'system',
+            label: 'ROLE & BOUNDARIES',
+            color: 'emerald',
+            symbol: '< >',
+            content: 'You are a Principal Software Engineer. Provide concise, production-ready architectures with zero conversational boilerplate.'
+          },
+          {
+            id: 'sec-2',
+            tag: 'instructions',
+            label: 'FORMATTING & CONSTRAINTS',
+            color: 'cyan',
+            symbol: '↳',
+            content: '1. Structure all code outputs in single-file deliverables where applicable.\n2. Adhere strictly to the requested framework requirements.\n3. Annotate architectural tradeoffs with concise inline comments.'
+          },
+          {
+            id: 'sec-3',
+            tag: 'parameters',
+            label: 'DYNAMIC PARAMETERS',
+            color: 'amber',
+            symbol: '{ }',
+            content: 'Target Language: {{target_language}}\nLatency Budget: {{latency_budget_ms}}ms'
+          },
+          {
+            id: 'sec-4',
+            tag: 'context',
+            label: 'REFERENCE SPEC',
+            color: 'violet',
+            symbol: '#',
+            content: 'Reference implementation located in src/platform/desktop/hotkey.rs'
+          }
+        ]
+      },
+      {
+        id: 'mid-1',
+        title: 'Mid-Task Iteration Reply',
+        type: 'midtask',
+        tags: 'response · edits · agreements',
+        theirReply: 'Paste the agent\'s reply here. It stays on screen while you write, and nothing is sent.',
+        sections: [
+          {
+            id: 'mid-sec-0',
+            tag: 'mode',
+            label: 'TASK CONTINUATION',
+            color: 'rose',
+            symbol: '▶',
+            content: 'This continues the same task. Read this whole message before acting. It is not time to build yet.'
+          },
+          {
+            id: 'mid-sec-1',
+            tag: 'in_response_to',
+            label: 'IN RESPONSE TO',
+            color: 'cyan',
+            symbol: '↳',
+            points: [
+              'The red upload highlight is a client-side hard wall: chat interfaces block raw video containers (.mp4, .mov) or exceed file size.'
+            ]
+          },
+          {
+            id: 'mid-sec-2',
+            tag: 'agreements',
+            label: 'AGREEMENTS',
+            color: 'emerald',
+            symbol: '✓',
+            points: [
+              'Treat each point as settled.',
+              'Adopt terminal-grade dark matte palette instead of tinted translucent backgrounds.'
+            ]
+          },
+          {
+            id: 'mid-sec-3',
+            tag: 'proposed_edits',
+            label: 'PROPOSED EDITS',
+            color: 'amber',
+            symbol: '✎',
+            points: [
+              'Still-Frame Step Sequence for timeline breakdown.',
+              'Single-file architecture with zero external module dependencies.'
+            ]
+          },
+          {
+            id: 'mid-sec-4',
+            tag: 'questions',
+            label: 'QUESTIONS & DECISIONS',
+            color: 'violet',
+            symbol: '?',
+            points: [
+              'To me unless the product is to make money on a DX tool they won\'t care.'
+            ]
+          }
+        ]
+      }
+    ];
+
+    let activePrompt = JSON.parse(JSON.stringify(promptLibrary[0]));
+
+    // Color utility mapping
+    const colorMap = {
+      emerald: {
+        border: 'border-l-emerald-500',
+        focusBorder: 'focus-within:border-emerald-500',
+        ring: 'focus-within:ring-emerald-500',
+        text: 'text-emerald-400',
+        bgPill: 'bg-surface-800',
+        borderPill: 'border-emerald-500'
+      },
+      cyan: {
+        border: 'border-l-cyan-500',
+        focusBorder: 'focus-within:border-cyan-500',
+        ring: 'focus-within:ring-cyan-500',
+        text: 'text-cyan-400',
+        bgPill: 'bg-surface-800',
+        borderPill: 'border-cyan-500'
+      },
+      amber: {
+        border: 'border-l-amber-500',
+        focusBorder: 'focus-within:border-amber-500',
+        ring: 'focus-within:ring-amber-500',
+        text: 'text-amber-400',
+        bgPill: 'bg-surface-800',
+        borderPill: 'border-amber-500'
+      },
+      violet: {
+        border: 'border-l-violet-500',
+        focusBorder: 'focus-within:border-violet-500',
+        ring: 'focus-within:ring-violet-500',
+        text: 'text-violet-400',
+        bgPill: 'bg-surface-800',
+        borderPill: 'border-violet-500'
+      },
+      rose: {
+        border: 'border-l-rose-500',
+        focusBorder: 'focus-within:border-rose-500',
+        ring: 'focus-within:ring-rose-500',
+        text: 'text-rose-400',
+        bgPill: 'bg-surface-800',
+        borderPill: 'border-rose-500'
+      }
+    };
+
+    const libraryCategories = [
+      ['prompts', 'Full prompts'], ['agreements', 'Agreements'], ['context', 'Contexts'],
+      ['persona', 'Personas'], ['stack', 'Stacks'], ['instructions', 'Instructions'],
+      ['constraints', 'Constraints'], ['output_format', 'Output formats'],
+      ['in_response_to', 'In response to'], ['proposed_edits', 'Proposed edits'],
+      ['questions', 'Questions'], ['parameters', 'Parameters'], ['all', 'All sections']
+    ];
+    const libraryPanels = [
+      { category: 'prompts', query: '' }, { category: 'agreements', query: '' },
+      { category: 'context', query: '' }
+    ];
+    const escapeHTML = value => String(value).replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+    const readableLabel = label => label.toLowerCase().replace(/\b[a-z]/g, letter => letter.toUpperCase());
+
+    function sectionCategory(section) {
+      if (['system', 'role', 'persona'].includes(section.tag)) return 'persona';
+      if (['instruction', 'instructions', 'rules'].includes(section.tag)) return 'instructions';
+      if (['context', 'project_context'].includes(section.tag)) return 'context';
+      return section.tag;
+    }
+
+    function renderLibrary() {
+      const root = document.getElementById('library-panels');
+      if (!root.children.length) {
+        libraryPanels.forEach((panel, index) => {
+          const region = document.createElement('section');
+          region.className = 'flex-1 min-h-0 flex flex-col border-b border-surface-800';
+          const controls = document.createElement('div');
+          controls.className = 'p-2 space-y-2';
+          const select = document.createElement('select');
+          select.className = 'w-full bg-surface-850 border border-surface-700 rounded px-2 py-1 text-slate-100 text-xs';
+          select.setAttribute('aria-label', 'Library ' + (index + 1));
+          libraryCategories.forEach(([value, label]) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = label;
+            select.appendChild(option);
+          });
+          select.value = panel.category;
+          select.onchange = () => { panel.category = select.value; renderLibraryPanel(index); };
+          const search = document.createElement('input');
+          search.type = 'search';
+          search.placeholder = 'Search this library…';
+          search.setAttribute('aria-label', 'Search library ' + (index + 1));
+          search.className = 'w-full bg-surface-950 border border-surface-800 rounded px-2 py-1 text-slate-100 placeholder-slate-400 text-xs';
+          search.oninput = () => { panel.query = search.value; renderLibraryPanel(index); };
+          controls.append(select, search);
+          const results = document.createElement('div');
+          results.id = 'library-results-' + index;
+          results.className = 'flex-1 min-h-0 overflow-y-auto p-2 pt-0 space-y-1';
+          region.append(controls, results);
+          root.appendChild(region);
+        });
+      }
+      libraryPanels.forEach((_panel, index) => renderLibraryPanel(index));
+    }
+
+    function renderLibraryPanel(index) {
+      const panel = libraryPanels[index];
+      const root = document.getElementById('library-results-' + index);
+      root.replaceChildren();
+      const query = panel.query.trim().toLowerCase();
+      const add = (title, description, searchable, action) => {
+        if (!(title + ' ' + description + ' ' + searchable).toLowerCase().includes(query)) return;
+        const button = document.createElement('button');
+        button.className = 'block w-full text-left p-2 rounded bg-surface-900 hover:bg-surface-850 border border-surface-800';
+        button.onclick = action;
+        const heading = document.createElement('div');
+        heading.className = 'text-xs font-semibold text-slate-100';
+        heading.textContent = title;
+        const detail = document.createElement('p');
+        detail.className = 'text-xs text-slate-300 mt-1';
+        detail.textContent = description;
+        button.append(heading, detail);
+        root.appendChild(button);
+      };
+      if (panel.category === 'prompts') {
+        promptLibrary.forEach(prompt => add(prompt.title, prompt.type === 'midtask' ? 'Mid-task reply' : 'Base prompt', prompt.tags,
+          () => loadPrompt(prompt.id)));
+      } else {
+        if (panel.category !== 'all') {
+          const label = libraryCategories.find(item => item[0] === panel.category)[1];
+          add('+ ' + label, 'Add an empty section', '', () => insertLibrarySection({
+            tag: panel.category, label, color: panel.category === 'agreements' ? 'emerald' : 'violet', symbol: '•', content: ''
+          }));
+        }
+        promptLibrary.forEach(prompt => prompt.sections.forEach(section => {
+          if (panel.category !== 'all' && sectionCategory(section) !== panel.category) return;
+          const body = section.points ? section.points.join(' · ') : section.content || '';
+          add(readableLabel(section.label), body.slice(0, 120), body + ' ' + prompt.title,
+            () => insertLibrarySection(section));
+        }));
+      }
+      if (!root.children.length) {
+        const empty = document.createElement('p');
+        empty.className = 'p-2 text-xs text-slate-300';
+        empty.textContent = 'No matching items.';
+        root.appendChild(empty);
+      }
+    }
+
+    function insertLibrarySection(section) {
+      activePrompt.sections.push({ ...JSON.parse(JSON.stringify(section)), id: 'sec-' + crypto.randomUUID() });
+      renderActiveSections();
+      document.getElementById('sections-container').lastElementChild?.scrollIntoView({ block: 'nearest' });
+    }
+
+    function renderActiveSections() {
+      const container = document.getElementById('sections-container');
+      container.innerHTML = '';
+
+      // If mid-task mode, show top "Their reply / Quote reference" box
+      if (currentMode === 'midtask') {
+        const theirReplyBox = document.createElement('div');
+        theirReplyBox.className = "group rounded-md bg-surface-900 border border-surface-800 border-l-4 border-l-slate-500 focus-within:border-slate-500 transition-all";
+        theirReplyBox.innerHTML = `
+          <div class="px-3 py-1.5 border-b border-surface-800 flex items-center justify-between text-xs font-mono bg-surface-900">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 font-bold">❝</span>
+              <span class="text-slate-200 font-semibold tracking-wide">Their reply</span>
+              <span class="text-[10px] text-slate-500 uppercase tracking-wider">PASTE HERE TO QUOTE & REFERENCE</span>
+            </div>
+            <span class="text-[10px] text-slate-500 font-mono">Reference Only</span>
+          </div>
+          <div class="p-3">
+            <textarea 
+              rows="2" 
+              oninput="activePrompt.theirReply = this.value; renderRawOutput();"
+              class="w-full bg-inherit resize-none text-slate-300 text-xs font-mono focus:outline-none placeholder-slate-600"
+              placeholder="Paste the agent's reply here. It stays on screen while you write, and nothing is sent."
+            >${escapeHTML(activePrompt.theirReply || '')}</textarea>
+          </div>
+        `;
+        container.appendChild(theirReplyBox);
+      }
+
+      // Render each section
+      activePrompt.sections.forEach((section, index) => {
+        const c = colorMap[section.color] || colorMap.emerald;
+        const block = document.createElement('div');
+        block.className = `group rounded-md bg-surface-900 border border-surface-800 border-l-4 ${c.border} ${c.focusBorder} focus-within:ring-1 ${c.ring} transition-all`;
+
+        // Check if this section uses points list (mid-task style) or standard textarea
+        const isPointList = Array.isArray(section.points);
+
+        let bodyHTML = '';
+        if (isPointList) {
+          bodyHTML = `
+            <div class="p-2.5 space-y-2">
+              <div class="space-y-1.5" id="points-container-${section.id}">
+                ${section.points.map((pt, ptIdx) => `
+                  <div class="flex items-start gap-2 bg-surface-950 p-2 rounded border border-surface-800 focus-within:border-surface-700">
+                    <span class="text-[10px] font-mono px-1 py-0.5 rounded bg-surface-850 text-slate-400 border border-surface-800 flex-shrink-0">
+                      0${ptIdx + 1}
+                    </span>
+                    <textarea 
+                      rows="1" 
+                      oninput="updatePoint('${section.id}', ${ptIdx}, this.value)"
+                      class="flex-1 bg-inherit text-slate-100 text-sm font-sans leading-relaxed focus:outline-none resize-none placeholder-slate-600"
+                    >${escapeHTML(pt)}</textarea>
+                    <button onclick="removePoint('${section.id}', ${ptIdx})" class="text-slate-600 hover:text-rose-400 text-xs px-1">✕</button>
+                  </div>
+                `).join('')}
+              </div>
+              <button onclick="addPoint('${section.id}')" class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-850 hover:bg-surface-800 text-slate-300 border border-surface-750 flex items-center gap-1 transition-colors">
+                + Add Point
+              </button>
+            </div>
+          `;
+        } else {
+          bodyHTML = `
+            <div class="p-3">
+              <textarea 
+                rows="3" 
+                oninput="updateSectionContent('${section.id}', this.value)"
+                class="w-full bg-inherit resize-none text-slate-100 text-sm font-sans leading-relaxed focus:outline-none placeholder-slate-600"
+                spellcheck="false"
+              >${escapeHTML(section.content || '')}</textarea>
+              <button onclick="addPoint('${section.id}')" class="text-xs px-2 py-0.5 rounded bg-surface-850 hover:bg-surface-800 text-slate-100 border border-surface-750">+ Add Point</button>
+            </div>
+          `;
+        }
+
+        block.innerHTML = `
+          <!-- Header Strip -->
+          <div class="px-3 py-1.5 border-b border-surface-800 flex items-center justify-between text-xs font-mono select-none bg-surface-900">
+            <div class="flex items-center gap-2">
+              <span class="${c.text} font-bold">•</span>
+              <span class="text-slate-100 text-sm font-sans font-semibold">${escapeHTML(readableLabel(section.label))}</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <button onclick="moveSection(${index}, -1)" class="text-slate-500 hover:text-slate-300 px-1" title="Move Up">▲</button>
+              <button onclick="moveSection(${index}, 1)" class="text-slate-500 hover:text-slate-300 px-1" title="Move Down">▼</button>
+              <button onclick="removeSection('${section.id}')" class="text-slate-500 hover:text-rose-400 px-1" title="Delete section">✕</button>
+            </div>
+          </div>
+          <!-- Body Content -->
+          ${bodyHTML}
+        `;
+
+        container.appendChild(block);
+      });
+
+      renderRawOutput();
+    }
+
+    function updateSectionContent(secId, val) {
+      const sec = activePrompt.sections.find(s => s.id === secId);
+      if (sec) {
+        sec.content = val;
+        renderRawOutput();
+      }
+    }
+
+    function updatePoint(secId, ptIndex, val) {
+      const sec = activePrompt.sections.find(s => s.id === secId);
+      if (sec && sec.points) {
+        sec.points[ptIndex] = val;
+        renderRawOutput();
+      }
+    }
+
+    function addPoint(secId) {
+      const sec = activePrompt.sections.find(s => s.id === secId);
+      if (sec) {
+        if (!Array.isArray(sec.points)) {
+          sec.points = sec.content ? [sec.content] : [];
+          delete sec.content;
+        }
+        sec.points.push('');
+        renderActiveSections();
+        document.getElementById('points-container-' + sec.id)?.querySelectorAll('textarea').item(sec.points.length - 1)?.focus();
+      }
+    }
+
+    function removePoint(secId, ptIndex) {
+      const sec = activePrompt.sections.find(s => s.id === secId);
+      if (sec && sec.points) {
+        sec.points.splice(ptIndex, 1);
+        renderActiveSections();
+      }
+    }
+
+    function moveSection(index, dir) {
+      const newIndex = index + dir;
+      if (newIndex < 0 || newIndex >= activePrompt.sections.length) return;
+      const [item] = activePrompt.sections.splice(index, 1);
+      activePrompt.sections.splice(newIndex, 0, item);
+      renderActiveSections();
+    }
+
+    function removeSection(secId) {
+      activePrompt.sections = activePrompt.sections.filter(s => s.id !== secId);
+      renderActiveSections();
+    }
+
+    function addNewSectionPrompt() {
+      const tags = ['instruction', 'rules', 'constraints', 'output_format', 'context'];
+      const randomTag = tags[Math.floor(Math.random() * tags.length)];
+      const colors = ['emerald', 'cyan', 'amber', 'violet'];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+      activePrompt.sections.push({
+        id: 'sec-' + Date.now(),
+        tag: randomTag,
+        label: randomTag.toUpperCase(),
+        color: randomColor,
+        symbol: '#',
+        content: 'New prompt specification block'
+      });
+      renderActiveSections();
+    }
+
+    function renderRawOutput() {
+      const shouldInterpolate = document.getElementById('interpolate-toggle').checked;
+      let outputText = '';
+
+      if (currentFormat === 'xml') {
+        activePrompt.sections.forEach(sec => {
+          outputText += `<${sec.tag}>\n`;
+          if (Array.isArray(sec.points)) {
+            sec.points.forEach((pt, i) => {
+              outputText += `  ${i + 1}. ${pt}\n`;
+            });
+          } else {
+            let body = sec.content || '';
+            if (shouldInterpolate) {
+              body = body.replace(/\{\{target_language\}\}/g, 'TypeScript')
+                         .replace(/\{\{latency_budget_ms\}\}/g, '120');
+            }
+            outputText += `  ${body}\n`;
+          }
+          outputText += `</${sec.tag}>\n\n`;
+        });
+      } else if (currentFormat === 'markdown') {
+        activePrompt.sections.forEach(sec => {
+          outputText += `### ${sec.tag.toUpperCase()}\n\n`;
+          if (Array.isArray(sec.points)) {
+            sec.points.forEach(pt => {
+              outputText += `- ${pt}\n`;
+            });
+          } else {
+            outputText += `${sec.content || ''}\n`;
+          }
+          outputText += `\n`;
+        });
+      } else if (currentFormat === 'json') {
+        const payload = {
+          template: activePrompt.title,
+          sections: activePrompt.sections.map(s => ({
+            tag: s.tag,
+            body: s.points ? s.points : s.content
+          }))
+        };
+        outputText = JSON.stringify(payload, null, 2);
+      }
+
+      compiledPrompt = outputText.trim();
+
+      // Update counters
+      const charCount = outputText.length;
+      const estTokens = Math.max(1, Math.round(charCount / 3.8));
+      const estCost = (estTokens * 0.000003).toFixed(5);
+
+      document.getElementById('char-counter').textContent = `${charCount} chars`;
+      document.getElementById('token-counter').textContent = `~${estTokens} toks`;
+      document.getElementById('cost-counter').textContent = `$${estCost} / run`;
+    }
+
+    function setFormat(fmt) {
+      currentFormat = fmt;
+      ['xml', 'markdown', 'json'].forEach(f => {
+        const btn = document.getElementById(`fmt-${f}`);
+        if (f === fmt) {
+          btn.className = "px-2 py-0.5 rounded bg-surface-800 text-emerald-400 font-medium";
+        } else {
+          btn.className = "px-2 py-0.5 rounded text-slate-400 hover:text-slate-200";
+        }
+      });
+      renderRawOutput();
+    }
+
+    function switchWorkflowMode(mode) {
+      currentMode = mode;
+      const baseBtn = document.getElementById('tab-base-btn');
+      const midBtn = document.getElementById('tab-midtask-btn');
+
+      if (mode === 'base') {
+        baseBtn.className = "px-3 py-1 rounded bg-surface-800 text-emerald-400 font-medium transition-all ";
+        midBtn.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition-all";
+        activePrompt = JSON.parse(JSON.stringify(promptLibrary[0]));
+      } else {
+        midBtn.className = "px-3 py-1 rounded bg-surface-800 text-cyan-400 font-medium transition-all ";
+        baseBtn.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition-all";
+        activePrompt = JSON.parse(JSON.stringify(promptLibrary[1]));
+      }
+
+      document.getElementById('prompt-title-input').value = activePrompt.title;
+      renderLibrary();
+      renderActiveSections();
+    }
+
+    function loadPrompt(id) {
+      const found = promptLibrary.find(p => p.id === id);
+      if (found) {
+        activePrompt = JSON.parse(JSON.stringify(found));
+        currentMode = activePrompt.type;
+        
+        // sync tabs
+        const baseBtn = document.getElementById('tab-base-btn');
+        const midBtn = document.getElementById('tab-midtask-btn');
+        if (currentMode === 'base') {
+          baseBtn.className = "px-3 py-1 rounded bg-surface-800 text-emerald-400 font-medium transition-all ";
+          midBtn.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition-all";
+        } else {
+          midBtn.className = "px-3 py-1 rounded bg-surface-800 text-cyan-400 font-medium transition-all ";
+          baseBtn.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition-all";
+        }
+
+        document.getElementById('prompt-title-input').value = activePrompt.title;
+        renderLibrary();
+        renderActiveSections();
+      }
+    }
+
+    function updateActiveTitle(val) {
+      activePrompt.title = val;
+      renderLibrary();
+    }
+
+    function createNewPrompt() {
+      const newPrompt = {
+        id: 'user-' + Date.now(),
+        title: 'New Prompt Template',
+        type: currentMode,
+        tags: 'custom · drafted',
+        sections: [
+          {
+            id: 'sec-' + Date.now(),
+            tag: 'system',
+            label: 'SYSTEM INSTRUCTIONS',
+            color: 'emerald',
+            symbol: '< >',
+            content: 'Write system instructions here...'
+          }
+        ]
+      };
+      promptLibrary.unshift(newPrompt);
+      loadPrompt(newPrompt.id);
+    }
+
+    function saveActivePrompt() {
+      const idx = promptLibrary.findIndex(p => p.id === activePrompt.id);
+      if (idx !== -1) {
+        promptLibrary[idx] = JSON.parse(JSON.stringify(activePrompt));
+      } else {
+        promptLibrary.unshift(JSON.parse(JSON.stringify(activePrompt)));
+      }
+      renderLibrary();
+      showToast("Template saved to memory");
+    }
+
+    function resetToDefaults() {
+      loadPrompt(activePrompt.id);
+      showToast("Reset to previous save");
+    }
+
+    function copyActivePrompt() {
+      const text = compiledPrompt;
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast("Prompt copied to clipboard!");
+    }
+
+    // Keyboard Hotkey Listener: Ctrl+Enter / Cmd+Enter to copy
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        copyActivePrompt();
+      }
+    });
+
+    // Custom inline toast notification
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = "fixed bottom-5 right-5 px-3 py-2 rounded bg-surface-800 border border-emerald-500 text-emerald-300 font-mono text-xs  flex items-center gap-2 z-50 ";
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${msg}`;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 1800);
+    }
+
+    window.onload = function() {
+      renderLibrary();
+      renderActiveSections();
+    };
+  </script>
+</body>
+</html>

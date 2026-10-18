@@ -1,0 +1,81 @@
+/* Level 1: raw tokens. The _MINTY palette and the neutral surfaces. */
+@layer tokens {
+  :root {
+    --minty-green:  oklch(0.72 0.19 150);
+    --minty-violet: oklch(0.62 0.20 300);
+    --minty-blue:   oklch(0.62 0.18 255);
+    --minty-cyan:   oklch(0.75 0.14 200);
+    --minty-red:    oklch(0.62 0.22 25);
+    --minty-amber:  oklch(0.78 0.17 75);
+
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-prose: "Literata Variable", Literata, Georgia, "Times New Roman", serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+    /* Body 16px, nothing under 14px, as rem so user font settings still apply. */
+    --fs-body: 1rem;
+    --fs-prose: 1.0625rem;
+    --lh-prose: 1.6;
+    --fs-small: 0.875rem;
+    --fs-h1: 1.75rem;
+    --fs-h2: 1.375rem;
+    --fs-h3: 1.1875rem;
+    --fs-title: 1.25rem;
+
+    --neutral-light-bg: #ffffff; --neutral-light-bg-2: #f6f6f6; --neutral-light-bg-3: #ececec;
+    --neutral-light-fg: #111111; --neutral-light-fg-2: #4a4a4a; --neutral-light-fg-3: #6f6f6f;
+    --neutral-light-line: #d4d4d4; --neutral-light-line-2: #a8a8a8;
+
+    --neutral-dark-bg: #000000; --neutral-dark-bg-2: #0e0e0e; --neutral-dark-bg-3: #1c1c1c;
+    --neutral-dark-fg: #f2f2f2; --neutral-dark-fg-2: #b8b8b8; --neutral-dark-fg-3: #8a8a8a;
+    --neutral-dark-line: #2e2e2e; --neutral-dark-line-2: #5a5a5a;
+
+    --paper-bg: #fafafa; --paper-bg-2: #f0f0f0; --paper-bg-3: #e4e4e4;
+    --paper-fg: #1a1a1a; --paper-fg-2: #555555; --paper-fg-3: #6e6e6e;
+    --paper-line: #cfcfcf; --paper-line-2: #a0a0a0;
+  }
+
+  /* Level 2: surfaces. Default follows the system; explicit themes pin a scheme. */
+  :root {
+    color-scheme: light dark;
+    --t-bg:     light-dark(var(--neutral-light-bg),     var(--neutral-dark-bg));
+    --t-bg-2:   light-dark(var(--neutral-light-bg-2),   var(--neutral-dark-bg-2));
+    --t-bg-3:   light-dark(var(--neutral-light-bg-3),   var(--neutral-dark-bg-3));
+    --t-fg:     light-dark(var(--neutral-light-fg),     var(--neutral-dark-fg));
+    --t-fg-2:   light-dark(var(--neutral-light-fg-2),   var(--neutral-dark-fg-2));
+    --t-fg-3:   light-dark(var(--neutral-light-fg-3),   var(--neutral-dark-fg-3));
+    --t-line:   light-dark(var(--neutral-light-line),   var(--neutral-dark-line));
+    --t-line-2: light-dark(var(--neutral-light-line-2), var(--neutral-dark-line-2));
+    /* One inverted action colour. */
+    --t-action: var(--t-fg);
+    --t-action-fg: var(--t-bg);
+    --t-hue-mix: 92%;
+    --h1-weight: 700; --h2-weight: 650; --h3-weight: 600;
+    --strong-weight: 700; --em-style: italic;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --t-hue-mix: 86%; }
+  }
+  :root[data-theme="light"] { color-scheme: light; --t-hue-mix: 92%; }
+  :root[data-theme="dark"]  { color-scheme: dark; --t-hue-mix: 86%; }
+  :root[data-theme="paper"] {
+    color-scheme: light;
+    --t-bg: var(--paper-bg); --t-bg-2: var(--paper-bg-2); --t-bg-3: var(--paper-bg-3);
+    --t-fg: var(--paper-fg); --t-fg-2: var(--paper-fg-2); --t-fg-3: var(--paper-fg-3);
+    --t-line: var(--paper-line); --t-line-2: var(--paper-line-2);
+    --t-hue-mix: 90%;
+    --h1-weight: 600; --h2-weight: 600; --h3-weight: 500;
+  }
+
+  /* Colour follows the section's type, custom sections included. */
+  [data-type="who"]    { --hue: var(--minty-green); }
+  [data-type="knows"]  { --hue: var(--minty-violet); }
+  [data-type="ends"]   { --hue: var(--minty-blue); }
+  [data-type="todo"]   { --hue: var(--minty-cyan); }
+  [data-type="limits"] { --hue: var(--minty-red); }
+  [data-type="back"]   { --hue: var(--minty-amber); }
+  [data-type="custom"] { --hue: var(--minty-cyan); }
+
+  @media (forced-colors: active) {
+    :root { --t-bg: Canvas; --t-fg: CanvasText; --t-line: CanvasText; --t-line-2: CanvasText; }
+  }
+}

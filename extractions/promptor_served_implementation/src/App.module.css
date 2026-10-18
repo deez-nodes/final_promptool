@@ -1,0 +1,25 @@
+.root {
+  block-size: 100%;
+}
+.brand {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  color: var(--t-fg);
+}
+.paneTitle {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  color: var(--t-fg);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-inline-size: 72ch;
+  margin-inline: auto;
+  inline-size: 100%;
+}
