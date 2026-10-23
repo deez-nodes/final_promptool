@@ -1,0 +1,141 @@
+.head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--c-pane-line);
+}
+
+.headSplit {
+  border-top: 1px solid var(--c-pane-line);
+}
+
+.headTitle {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--c-pane-head-fg);
+}
+
+.select {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.selectNarrow {
+  max-width: 8rem;
+}
+
+.searchRow {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--c-pane-line);
+}
+
+.search {
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+}
+.search::placeholder { color: var(--t-fg-3); }
+
+.list {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.grow {
+  flex: 1;
+}
+
+.library {
+  height: 14rem;
+  flex-shrink: 0;
+}
+
+.row {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--c-pane-line);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+}
+.row:hover { background: var(--c-control-hover-bg); }
+
+.rowActive,
+.rowActive:hover {
+  background: var(--c-row-active-bg);
+  border-left-color: var(--c-row-active-mark);
+}
+
+.rowTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rowName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.badge,
+.count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--c-count-fg);
+}
+
+.rowTags {
+  display: flex;
+  gap: var(--space-2);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--c-tag-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.from {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  color: var(--t-fg-3);
+}
+
+.snippet {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  color: var(--t-fg-2);
+}
+
+.empty {
+  padding: var(--space-4);
+  text-align: center;
+  font-size: var(--fs-small);
+  color: var(--t-fg-3);
+}

@@ -6,9 +6,10 @@
  *
  * Exit code 0 = passed, 1 = failed (CI-usable).
  *
- * [struct] The string `preview-pane` must appear in exactly one file under
- * pages/ + components/ + layouts/. Two hits means the studio shell has been
- * duplicated again; zero means the preview pane lost its anchor.
+ * [struct] The string `studio-shell` (the layout shell's id) must appear in exactly
+ * one file under pages/ + components/ + layouts/. Two hits means the studio shell
+ * has been duplicated again; zero means the shell lost its anchor. (There is no
+ * preview pane any more: DECIDED.md "The output stays hidden until asked for.")
  *
  * An explicit root may be passed so the check can be pointed at a copy of the
  * tree (used to mutation-test the check itself).
@@ -22,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(process.argv[2] || path.join(HERE, '..'));
 
 const SCAN_DIRS = ['pages', 'components', 'layouts'];
-const NEEDLE = 'preview-pane';
+const NEEDLE = 'studio-shell';
 
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];

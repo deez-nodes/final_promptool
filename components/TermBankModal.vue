@@ -1,81 +1,56 @@
 <template>
-  <div
-    v-if="promptStore.showBankModal.value"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 select-none"
+  <UModal
+    v-model:open="promptStore.showBankModal.value"
+    title="Term Bank"
+    description="Curated terms and guardrails rank highest when Tab completes a word in any section."
+    :close="false"
+    :ui="{
+      overlay: $style.overlay,
+      content: $style.dialog,
+      header: $style.header,
+      title: $style.title,
+      description: $style.description,
+      body: $style.body,
+      footer: $style.footer
+    }"
   >
-    <div class="bg-surface border border-border2 rounded-lg p-5 w-full max-w-2xl shadow-2xl flex flex-col max-h-[85vh]">
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between pb-3 border-b border-border mb-3">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-miku shadow-glow-miku"></span>
-          <span class="font-rajdhani font-bold text-sm tracking-widest uppercase text-text">
-            prompTOR Term Bank & Guardrails
-          </span>
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface3 text-muted2 border border-border">
-            Tab Autocomplete Engine
-          </span>
-        </div>
-        <button
-          @click="promptStore.showBankModal.value = false"
-          class="text-muted hover:text-pink text-lg font-bold px-2 py-0.5 transition-colors"
-        >
-          ×
-        </button>
-      </div>
-
-      <p class="text-xs text-muted mb-3 leading-relaxed">
-        Curated terms and guardrails rank highest during <kbd class="px-1.5 py-0.5 bg-surface3 text-acid rounded border border-border font-mono text-[10px]">Tab</kbd> autocomplete in any section.
-      </p>
-
-      <!-- Quick Category Pills -->
-      <div class="flex flex-wrap gap-1.5 mb-3">
-        <span class="text-[11px] text-muted2 py-1 mr-1">Quick Add:</span>
-        <button
+    <template #body>
+      <!-- Quick add -->
+      <div :class="$style.presets">
+        <span :class="$style.label">Quick add</span>
+        <UButton
           v-for="preset in PRESET_TERMS"
           :key="preset.text"
-          @click="addPreset(preset.text)"
-          class="px-2 py-0.5 rounded bg-surface2 hover:bg-surface3 border border-border hover:border-miku text-text hover:text-miku text-[11px] font-mono transition-colors"
+          :class="$style.preset"
           :title="preset.category"
+          @click="addPreset(preset.text)"
         >
           + {{ preset.text }}
-        </button>
+        </UButton>
       </div>
 
-      <!-- Term Editor Textarea -->
-      <div class="flex-1 flex flex-col min-h-0 mb-4">
-        <label class="text-[11px] font-rajdhani font-bold uppercase text-muted2 mb-1">
-          Lexicon Entries (One per line):
-        </label>
-        <textarea
-          v-model="bankContent"
-          spellcheck="false"
-          class="w-full flex-1 min-h-[200px] bg-surface2 border border-border focus:border-acid text-text font-mono text-xs p-3 rounded outline-none leading-relaxed resize-none"
-          placeholder="Chain of Thought&#10;Negative Guardrails&#10;JSON Schema Validation&#10;Anthropic Claude&#10;Investigate Before Answering"
-        ></textarea>
-      </div>
+      <label :class="$style.label" for="term-bank-entries">One term per line</label>
+      <textarea
+        id="term-bank-entries"
+        v-model="bankContent"
+        :class="$style.editor"
+        spellcheck="false"
+        placeholder="Chain of Thought&#10;Negative Guardrails&#10;JSON Schema Validation&#10;Investigate Before Answering"
+      ></textarea>
+    </template>
 
-      <!-- Modal Footer -->
-      <div class="flex items-center justify-between pt-2 border-t border-border">
-        <span class="text-[11px] text-muted font-mono">
-          {{ parsedTermsCount }} terms defined
-        </span>
-        <div class="flex items-center gap-2.5">
-          <button
-            @click="promptStore.showBankModal.value = false"
-            class="px-3.5 py-1.5 rounded bg-surface2 hover:bg-surface3 border border-border text-text font-mono text-xs transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            @click="saveBank"
-            class="px-4 py-1.5 rounded bg-acid hover:brightness-110 text-bg font-mono text-xs font-bold transition-all shadow-glow-acid"
-          >
-            Save Term Bank
-          </button>
-        </div>
+    <template #footer>
+      <code :class="$style.count">{{ parsedTermsCount }} terms</code>
+      <div :class="$style.actions">
+        <UButton :class="$style.btn" @click="promptStore.showBankModal.value = false">
+          Cancel
+        </UButton>
+        <UButton :class="[$style.btn, $style.primary]" @click="saveBank">
+          Save Term Bank
+        </UButton>
       </div>
-    </div>
-  </div>
+    </template>
+  </UModal>
 </template>
 
 <script setup lang="ts">
@@ -135,3 +110,4 @@ const saveBank = () => {
 }
 </script>
 
+<style module src="./TermBankModal.module.css"></style>

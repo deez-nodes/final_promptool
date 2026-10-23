@@ -1000,45 +1000,6 @@ export function usePromptStore() {
     saveToStorage()
   }
 
-  const exportStoreJson = () => {
-    return serializeStore(store.value, true)
-  }
-
-  // Download the in-memory workspace; works even when storage writes are failing.
-  const downloadWorkspaceJson = () => {
-    const blob = new Blob([exportStoreJson()], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `promptor_workspace_${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const importStoreJson = (jsonString: string): { ok: boolean; error?: string } => {
-    try {
-      const parsed = JSON.parse(jsonString)
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-        return { ok: false, error: 'Not a valid JSON object' }
-      }
-      if (!Array.isArray(parsed.prompts)) {
-        return { ok: false, error: 'Missing prompts array' }
-      }
-      if (!Array.isArray(parsed.bank)) {
-        return { ok: false, error: 'Missing bank array' }
-      }
-      store.value = migrateStore(parsed)
-      if (store.value.prompts.length > 0) {
-        currentPromptId.value = store.value.prompts[0].id
-      }
-      saveToStorage()
-      flushSave()
-      return { ok: true }
-    } catch (e) {
-      return { ok: false, error: e instanceof SyntaxError ? 'Malformed JSON payload' : (e as Error)?.message || 'Import failed' }
-    }
-  }
-
   return {
     store,
     currentPromptId,
@@ -1048,7 +1009,6 @@ export function usePromptStore() {
     saveToStorage,
     flushSave,
     persist,
-    downloadWorkspaceJson,
     promptQuery,
     promptKindFilter,
     sectionQuery,
@@ -1080,8 +1040,6 @@ export function usePromptStore() {
     moveSectionInCurrent,
     insertLibrarySection,
     saveBankTerms,
-    exportStoreJson,
-    importStoreJson,
     estimateTokens
   }
 }

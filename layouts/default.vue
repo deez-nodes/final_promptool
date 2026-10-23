@@ -1,22 +1,24 @@
 <template>
-  <div class="h-screen w-screen flex flex-col overflow-hidden bg-bg text-text font-mono">
+  <div id="studio-shell" :class="$style.shell">
     <Navbar />
 
-    <!-- Studio shell: sidebar | editor | preview -->
-    <div class="flex-1 flex min-h-0 overflow-hidden bg-bg text-text font-mono text-xs select-none">
-      <aside id="sidebar" class="w-72 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-surface/55">
+    <!-- Studio shell: sidebar | editor | board. No preview pane: output stays hidden until asked for. -->
+    <div :class="$style.body">
+      <aside id="sidebar" :class="$style.sidebar">
         <slot name="sidebar" />
       </aside>
 
-      <main id="editor" class="flex-1 min-w-0 overflow-y-auto p-4 pb-24 select-text relative">
+      <main id="editor" :class="$style.editor">
         <slot />
       </main>
 
-      <aside id="preview-pane" class="w-[38%] min-w-[340px] flex-shrink-0 border-l border-border flex flex-col min-h-0 bg-surface/55 select-text">
-        <slot name="preview" />
+      <aside id="board-pane" :class="$style.board">
+        <slot name="board" />
       </aside>
 
       <TermBankModal />
     </div>
   </div>
 </template>
+
+<style module src="./default.module.css"></style>

@@ -1,14 +1,17 @@
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
-  <StudioSaveBanner />
+  <UApp>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <StudioSaveBanner />
+  </UApp>
 </template>
 
 <script setup lang="ts">
 // Ensure prompt store is ready on app mount
 const promptStore = usePromptStore()
 const layoutPrefs = useLayoutPrefs()
+const { loadTheme } = useTheme()
 
 // Flush pending debounced writes whenever the user might be leaving.
 const flushAll = () => {
@@ -24,6 +27,7 @@ useRouter().beforeEach(() => {
 })
 
 onMounted(() => {
+  loadTheme()
   promptStore.initStore()
   window.addEventListener('blur', flushAll)
   window.addEventListener('pagehide', flushAll)

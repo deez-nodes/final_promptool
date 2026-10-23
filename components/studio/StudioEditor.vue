@@ -1,132 +1,106 @@
 <template>
   <template v-if="promptStore.currentPrompt.value">
-    <!-- Prompt Title & Metadata Header -->
-    <div id="prompt-bar" class="flex flex-col gap-2 mb-4 pb-3 border-b border-border bg-surface/30 p-3 rounded-lg">
-      <div class="flex items-center gap-3">
+    <!-- Prompt title and metadata -->
+    <div id="prompt-bar" :class="$style.promptBar">
+      <div :class="$style.titleRow">
         <input
           :value="promptStore.currentPrompt.value.name"
-          @input="promptStore.updatePromptName(($event.target as HTMLInputElement).value)"
+          :class="$style.title"
           placeholder="Untitled Prompt"
           spellcheck="false"
-          class="flex-1 text-base font-bold bg-transparent border-none text-text outline-none focus:text-acid transition-colors py-0.5 placeholder:text-muted"
+          aria-label="Prompt name"
+          @input="promptStore.updatePromptName(($event.target as HTMLInputElement).value)"
         />
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface3 border border-border text-muted">
-            {{ promptStore.currentPrompt.value.kind }}
-          </span>
-          <span class="text-[11px] text-muted">
-            Updated {{ new Date(promptStore.currentPrompt.value.updated).toLocaleTimeString() }}
-          </span>
-        </div>
+        <code :class="$style.badge">{{ promptStore.currentPrompt.value.kind }}</code>
+        <span :class="$style.meta">
+          Updated {{ new Date(promptStore.currentPrompt.value.updated).toLocaleTimeString() }}
+        </span>
       </div>
 
-      <!-- Variable Matrix Drawer / Collapsible Banner -->
-      <div
-        v-if="promptStore.showVariableMatrix.value"
-        class="mt-2 p-3 rounded-md bg-surface2/90 border border-miku/40 flex flex-col gap-2.5 transition-all"
-      >
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-miku font-bold text-xs">&#123;x&#125; Dynamic Variable Matrix</span>
-            <span class="text-[10px] text-muted">Interpolated into &#123;&#123;var&#125;&#125; tokens at compile time</span>
-          </div>
-          <button
+      <!-- Variable matrix -->
+      <div v-if="promptStore.showVariableMatrix.value" :class="$style.matrix">
+        <div :class="$style.matrixHead">
+          <span :class="$style.matrixTitle">Variables</span>
+          <span :class="$style.meta">Filled into <code :class="$style.tag">&#123;&#123;var&#125;&#125;</code> tags when the prompt is built</span>
+          <UButton
+            :class="$style.iconBtn"
+            aria-label="Close variables"
             @click="promptStore.showVariableMatrix.value = false"
-            class="text-muted hover:text-text text-xs px-1"
           >
-            ✕
-          </button>
+            ×
+          </UButton>
         </div>
 
-        <!-- Variable Input Rows -->
-        <div
-          v-if="promptStore.currentPromptVariables.value.length > 0"
-          class="grid grid-cols-1 md:grid-cols-2 gap-2"
-        >
-          <div
+        <div v-if="promptStore.currentPromptVariables.value.length > 0" :class="$style.matrixGrid">
+          <label
             v-for="varKey in promptStore.currentPromptVariables.value"
             :key="varKey"
-            class="flex items-center gap-2 bg-surface p-1.5 rounded border border-border"
+            :class="$style.varRow"
           >
-            <span class="text-acid font-bold text-[11px] px-1.5 py-0.5 bg-surface3 rounded border border-border font-mono">
-              &#123;&#123;{{ varKey }}&#125;&#125;
-            </span>
+            <code :class="$style.tag">&#123;&#123;{{ varKey }}&#125;&#125;</code>
             <input
               :value="promptStore.store.value.activeVariables?.[varKey] || ''"
-              @input="promptStore.setPromptVariable(varKey, ($event.target as HTMLInputElement).value)"
-              class="flex-1 bg-transparent border-none text-text text-xs font-mono outline-none px-1 py-0.5 placeholder:text-muted"
+              :class="$style.varInput"
               :placeholder="`Value for ${varKey}...`"
               spellcheck="false"
+              @input="promptStore.setPromptVariable(varKey, ($event.target as HTMLInputElement).value)"
             />
-          </div>
+          </label>
         </div>
 
-        <div v-else class="text-xs text-muted italic p-1">
-          No variables found. Type <code class="text-acid font-mono">&#123;&#123;my_var&#125;&#125;</code> in any section to define dynamic variables.
-        </div>
+        <p v-else :class="$style.meta">
+          No variables found. Type <code :class="$style.tag">&#123;&#123;my_var&#125;&#125;</code> in any section to define one.
+        </p>
       </div>
     </div>
 
-    <!-- Interactive Section Blocks -->
-    <div id="sections" class="space-y-3.5">
+    <!-- Section cards -->
+    <div id="sections" :class="$style.sections">
       <div
         v-for="(s, index) in promptStore.currentPrompt.value.sections"
         :key="s.id"
-        :class="[
-          'section border rounded-lg transition-all duration-150 bg-surface shadow-xs',
-          s.include ? 'border-border focus-within:border-border2' : 'border-border/40 opacity-55 bg-surface/40'
-        ]"
+        :class="[$style.card, !s.include && $style.cardExcluded]"
         :data-id="s.id"
+        :data-type="typeOf(s.role)"
       >
-        <!-- Section Header -->
-        <div class="section-head flex items-center gap-2.5 px-3 py-2 border-b border-border/80 bg-surface2/50 select-none">
-          <!-- Reorder Index Pill -->
-          <span
-            class="section-num bg-acid text-bg font-bold text-[11px] rounded px-1.5 py-0.5 cursor-grab active:cursor-grabbing hover:shadow-glow-acid font-mono"
-            title="Section order index"
-          >
-            {{ index + 1 }}
-          </span>
+        <div :class="$style.cardHead">
+          <code :class="$style.num" title="Section order index">{{ index + 1 }}</code>
 
-          <!-- Move Up/Down Controls -->
-          <div class="flex items-center text-muted hover:text-text gap-0.5">
-            <button
+          <div :class="$style.moves">
+            <UButton
               v-if="index > 0"
-              @click="promptStore.moveSectionInCurrent(index, index - 1)"
-              class="hover:text-acid px-1 py-0.5 text-[10px] rounded hover:bg-surface3"
+              :class="$style.iconBtn"
               title="Move section up"
+              @click="promptStore.moveSectionInCurrent(index, index - 1)"
             >
               ▲
-            </button>
-            <button
+            </UButton>
+            <UButton
               v-if="index < promptStore.currentPrompt.value.sections.length - 1"
-              @click="promptStore.moveSectionInCurrent(index, index + 1)"
-              class="hover:text-acid px-1 py-0.5 text-[10px] rounded hover:bg-surface3"
+              :class="$style.iconBtn"
               title="Move section down"
+              @click="promptStore.moveSectionInCurrent(index, index + 1)"
             >
               ▼
-            </button>
+            </UButton>
           </div>
 
-          <!-- Tag Slug Input -->
-          <div class="flex items-center gap-1">
-            <span class="text-miku font-bold font-mono">&lt;</span>
-            <input
-              :value="s.tag"
-              @blur="promptStore.updateSectionInCurrent(s.id, { tag: ($event.target as HTMLInputElement).value })"
-              @keydown.enter="($event.target as HTMLInputElement).blur()"
-              class="bg-transparent border-none text-miku focus:text-acid font-bold outline-none py-0.5 w-36 tracking-wide font-mono"
-              spellcheck="false"
-              placeholder="tag_name"
-            />
-            <span class="text-miku font-bold font-mono">&gt;</span>
-          </div>
+          <!-- Tag: the section heading -->
+          <input
+            :value="s.tag"
+            :class="$style.tagInput"
+            spellcheck="false"
+            placeholder="tag_name"
+            aria-label="Section tag"
+            @blur="promptStore.updateSectionInCurrent(s.id, { tag: ($event.target as HTMLInputElement).value })"
+            @keydown.enter="($event.target as HTMLInputElement).blur()"
+          />
 
-          <!-- Section Role Chip / Selector -->
           <select
             :value="s.role || 'custom'"
+            :class="$style.select"
+            aria-label="Section type"
             @change="promptStore.updateSectionInCurrent(s.id, { role: ($event.target as HTMLSelectElement).value as any })"
-            class="bg-surface3 border border-border text-[10px] text-muted2 rounded px-1.5 py-0.5 focus:border-border2 outline-none cursor-pointer uppercase font-rajdhani font-bold tracking-wider"
           >
             <option value="system">System</option>
             <option value="instruction">Instruction</option>
@@ -137,124 +111,86 @@
             <option value="custom">Custom</option>
           </select>
 
-          <!-- Include Checkbox -->
-          <label class="flex items-center gap-1.5 text-muted text-[11px] cursor-pointer hover:text-text ml-1">
+          <label :class="$style.include">
             <input
               type="checkbox"
               :checked="s.include"
               @change="promptStore.updateSectionInCurrent(s.id, { include: ($event.target as HTMLInputElement).checked })"
-              class="rounded bg-surface2 border-border accent-acid cursor-pointer"
             />
             <span>include</span>
           </label>
 
-          <div class="flex-1"></div>
+          <span :class="$style.spacer" />
 
-          <!-- Tokens estimation badge -->
-          <span class="text-[10px] text-muted font-mono mr-1">
-            ~{{ promptStore.estimateTokens(s.body) }} toks
-          </span>
+          <code :class="$style.count">~{{ promptStore.estimateTokens(s.body) }} tokens</code>
 
-          <!-- Clone Section Button -->
-          <button
-            @click="promptStore.duplicateSectionInCurrent(s.id)"
-            class="text-muted hover:text-text px-1.5 py-0.5 rounded text-xs transition-colors"
+          <UButton
+            :class="$style.textBtn"
             title="Duplicate section"
+            @click="promptStore.duplicateSectionInCurrent(s.id)"
           >
             clone
-          </button>
-
-          <!-- Delete Section Button -->
-          <button
-            @click="promptStore.removeSectionFromCurrent(s.id)"
-            class="text-muted hover:text-pink px-1.5 py-0.5 rounded transition-colors text-sm font-bold"
+          </UButton>
+          <UButton
+            :class="[$style.iconBtn, $style.danger]"
             title="Delete section"
+            @click="promptStore.removeSectionFromCurrent(s.id)"
           >
             ×
-          </button>
+          </UButton>
         </div>
 
-        <!-- Section Body Textarea with Tab Autocomplete -->
-        <div class="relative p-2.5">
+        <div :class="$style.cardBody">
           <textarea
             :value="s.body"
+            :class="$style.body"
+            placeholder="Write the section here. Use {{my_var}} for variables. Tab completes terms."
+            spellcheck="false"
+            aria-label="Section body"
             @input="handleBodyInput(s.id, $event)"
             @keydown="handleTextareaKeydown(s.id, $event)"
-            class="w-full min-h-[90px] bg-transparent border-none text-text font-mono text-xs p-1 outline-none leading-relaxed resize-y placeholder:text-muted focus:bg-surface/30 rounded"
-            placeholder="Write prompt instructions, rules, XML schemas, or dynamic variables like {{my_var}} here... (Press Tab for autocomplete)"
-            spellcheck="false"
           ></textarea>
         </div>
       </div>
     </div>
 
-    <!-- Quick Add Section Block Bar -->
-    <div class="mt-5 p-3 rounded-lg border border-dashed border-border flex flex-wrap items-center justify-center gap-2 bg-surface/20">
-      <span class="text-xs text-muted mr-1 font-rajdhani font-bold uppercase tracking-wider">Add Block:</span>
-      <button
-        @click="promptStore.addSectionToCurrent('instructions', '', 'instruction')"
-        class="px-2.5 py-1 rounded bg-surface2 hover:bg-surface3 border border-border hover:border-acid text-text hover:text-acid text-xs font-mono transition-colors"
+    <!-- Add a section by chip: the chip sets its type and colour -->
+    <div :class="$style.addBar">
+      <span :class="$style.meta">Add section</span>
+      <UButton
+        v-for="chip in CHIPS"
+        :key="chip.tag"
+        :class="$style.chip"
+        :data-type="typeOf(chip.role)"
+        @click="promptStore.addSectionToCurrent(chip.tag, '', chip.role)"
       >
-        + Instructions
-      </button>
-      <button
-        @click="promptStore.addSectionToCurrent('constraints', '', 'constraint')"
-        class="px-2.5 py-1 rounded bg-surface2 hover:bg-surface3 border border-border hover:border-pink text-text hover:text-pink text-xs font-mono transition-colors"
-      >
-        + Constraint
-      </button>
-      <button
-        @click="promptStore.addSectionToCurrent('context', '', 'context')"
-        class="px-2.5 py-1 rounded bg-surface2 hover:bg-surface3 border border-border hover:border-miku text-text hover:text-miku text-xs font-mono transition-colors"
-      >
-        + Context
-      </button>
-      <button
-        @click="promptStore.addSectionToCurrent('few_shot', '', 'few-shot')"
-        class="px-2.5 py-1 rounded bg-surface2 hover:bg-surface3 border border-border hover:border-amber text-text hover:text-amber text-xs font-mono transition-colors"
-      >
-        + Few-Shot
-      </button>
-      <button
-        @click="promptStore.addSectionToCurrent('output_format', '', 'output-format')"
-        class="px-2.5 py-1 rounded bg-surface2 hover:bg-surface3 border border-border hover:border-green text-text hover:text-green text-xs font-mono transition-colors"
-      >
-        + Output Format
-      </button>
+        + {{ chip.label }}
+      </UButton>
     </div>
   </template>
 
-  <!-- Empty State -->
-  <div v-else id="empty" class="text-center py-20 text-muted">
-    <div class="text-4xl mb-3 text-brand-magenta font-orbitron font-bold">prompTOR</div>
-    <p class="text-sm mb-4">No prompt selected</p>
-    <button
-      @click="promptStore.createPrompt('filled')"
-      class="px-4 py-2 bg-acid hover:brightness-110 text-bg rounded font-bold transition-all shadow-glow-acid font-mono text-xs"
-    >
+  <!-- Empty state -->
+  <div v-else id="empty" :class="$style.empty">
+    <p :class="$style.emptyTitle">No prompt selected</p>
+    <UButton :class="$style.action" @click="promptStore.createPrompt('filled')">
       + Create New Prompt
-    </button>
+    </UButton>
   </div>
 
-  <!-- Autocomplete Dropdown Popup -->
+  <!-- Autocomplete popup -->
   <div
     v-if="acVisible && acCandidates.length > 0"
+    :class="$style.ac"
     :style="{ top: acPos.top + 'px', left: acPos.left + 'px' }"
-    class="fixed z-50 bg-surface2 border border-border2 rounded-md p-1 max-w-xs shadow-2xl overflow-hidden font-mono text-xs divide-y divide-border/40"
   >
     <div
       v-for="(cand, idx) in acCandidates.slice(0, 7)"
       :key="cand"
+      :class="[$style.acRow, idx === acActiveIndex && $style.acActive]"
       @mousedown.prevent="selectCandidate(cand)"
-      :class="[
-        'px-2.5 py-1.5 rounded cursor-pointer truncate flex items-center justify-between gap-2',
-        idx === acActiveIndex ? 'bg-surface3 text-acid font-bold' : 'text-text hover:bg-surface3/80'
-      ]"
     >
       <span>{{ cand }}</span>
-      <span v-if="promptStore.bankTermsList.value.includes(cand)" class="text-[9px] px-1 py-0.2 rounded bg-miku/20 text-miku">
-        bank
-      </span>
+      <code v-if="promptStore.bankTermsList.value.includes(cand)" :class="$style.count">bank</code>
     </div>
   </div>
 </template>
@@ -263,6 +199,26 @@
 import { harvest, getCandidates } from '~/composables/usePromptStore'
 
 const promptStore = usePromptStore()
+
+// Section role -> colour type (assets/css/tokens.css [data-type]). Rebuilt with the model in a later package.
+const ROLE_TYPE: Record<string, string> = {
+  system: 'role',
+  context: 'context',
+  'few-shot': 'context',
+  instruction: 'task',
+  constraint: 'constraints',
+  'output-format': 'output',
+  custom: 'task'
+}
+const typeOf = (role?: string) => ROLE_TYPE[role || 'custom'] || 'task'
+
+const CHIPS = [
+  { tag: 'instructions', role: 'instruction', label: 'Instructions' },
+  { tag: 'constraints', role: 'constraint', label: 'Constraint' },
+  { tag: 'context', role: 'context', label: 'Context' },
+  { tag: 'few_shot', role: 'few-shot', label: 'Few-Shot' },
+  { tag: 'output_format', role: 'output-format', label: 'Output Format' }
+] as const
 
 // ── Tab Autocomplete Engine ──────────────────────────────────────────────────
 const acVisible = ref(false)
@@ -377,3 +333,5 @@ const selectCandidate = (cand: string) => {
   acVisible.value = false
 }
 </script>
+
+<style module src="./StudioEditor.module.css"></style>

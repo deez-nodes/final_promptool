@@ -1,165 +1,122 @@
 <template>
-  <header id="header" class="h-12 flex-shrink-0 flex items-center gap-2.5 px-3.5 bg-gradient-to-b from-surface to-bg border-b border-border text-xs z-30 select-none">
-    <!-- Logo & Branding -->
-    <div class="flex items-center gap-2.5 mr-2">
-      <NuxtLink to="/" class="flex items-center gap-2 group">
-        <div class="w-6 h-6 rounded bg-brand-magenta flex items-center justify-center font-orbitron font-black text-white text-[11px] shadow-glow-magenta transition-transform group-hover:scale-105">
-          P
-        </div>
-        <div class="font-orbitron font-black text-sm tracking-wider text-acid drop-shadow-sm flex items-center">
-          <span>promp<i class="not-italic text-brand-magenta">TOR</i></span>
-          <span class="ml-1.5 text-[9px] font-mono tracking-normal px-1.5 py-0.5 rounded bg-surface3 text-miku border border-border">
-            STUDIO
-          </span>
-        </div>
-      </NuxtLink>
-    </div>
+  <header id="header" :class="$style.bar">
+    <!-- Brand -->
+    <NuxtLink to="/" :class="$style.brand">
+      <span>promp<strong>TOR</strong></span>
+    </NuxtLink>
 
-    <!-- Quick Studio Actions -->
-    <div class="flex items-center gap-1.5 bg-surface2/60 p-0.5 rounded border border-border">
-      <button
-        @click="promptStore.createPrompt('filled')"
-        class="flex items-center gap-1 px-2.5 py-1 bg-surface3 hover:bg-surface4 border border-acid/50 hover:border-acid text-acid rounded transition-all font-mono text-[11px] font-bold"
+    <!-- Studio actions -->
+    <div :class="$style.group">
+      <UButton
+        :class="[$style.btn, $style.primary]"
         title="Create new active prompt document"
+        @click="promptStore.createPrompt('filled')"
       >
-        <span class="text-xs">+</span>
-        <span>New Prompt</span>
-      </button>
-
-      <button
-        @click="promptStore.createPrompt('template')"
-        class="flex items-center gap-1 px-2 py-1 bg-surface hover:bg-surface3 border border-border hover:border-text text-text rounded transition-all font-mono text-[11px]"
+        + New Prompt
+      </UButton>
+      <UButton
+        :class="$style.btn"
         title="Create modular template"
+        @click="promptStore.createPrompt('template')"
       >
-        <span>+ Template</span>
-      </button>
-
-      <button
-        @click="promptStore.addSectionToCurrent('instruction', '', 'instruction')"
-        class="flex items-center gap-1 px-2 py-1 bg-surface hover:bg-surface3 border border-border hover:border-text text-text rounded transition-all font-mono text-[11px]"
+        + Template
+      </UButton>
+      <UButton
+        :class="$style.btn"
         title="Add a new section to active prompt"
+        @click="promptStore.addSectionToCurrent('instruction', '', 'instruction')"
       >
-        <span>+ Section</span>
-      </button>
-
-      <button
+        + Section
+      </UButton>
+      <UButton
         v-if="promptStore.currentPrompt.value"
-        @click="promptStore.duplicatePrompt(promptStore.currentPrompt.value.id)"
-        class="flex items-center gap-1 px-2 py-1 bg-surface hover:bg-surface3 border border-border hover:border-text text-muted2 hover:text-text rounded transition-all font-mono text-[11px]"
+        :class="$style.btn"
         title="Clone active prompt"
+        @click="promptStore.duplicatePrompt(promptStore.currentPrompt.value.id)"
       >
-        <span>Clone</span>
-      </button>
-
-      <button
+        Clone
+      </UButton>
+      <UButton
         v-if="promptStore.currentPrompt.value"
-        @click="confirmDeletePrompt"
-        class="flex items-center gap-1 px-2 py-1 bg-surface hover:bg-surface3 border border-border hover:border-pink hover:text-pink text-muted rounded transition-all font-mono text-[11px]"
+        :class="[$style.btn, $style.danger]"
         title="Delete current prompt"
+        @click="confirmDeletePrompt"
       >
-        <span>Delete</span>
-      </button>
+        Delete
+      </UButton>
     </div>
 
-    <!-- Model Target Selector -->
-    <div class="flex items-center gap-1.5 bg-surface2 border border-border px-2 py-0.5 rounded ml-1">
-      <span class="w-1.5 h-1.5 rounded-full bg-miku animate-pulse"></span>
-      <select
-        :value="promptStore.currentPrompt.value?.modelTarget || 'claude-3.7-sonnet'"
-        @change="promptStore.updatePromptModel(($event.target as HTMLSelectElement).value as any)"
-        class="bg-transparent border-none text-[11px] text-text font-mono focus:outline-none cursor-pointer py-0.5"
-      >
-        <option value="claude-3.7-sonnet" class="bg-surface2 text-text">Claude 3.7 Sonnet</option>
-        <option value="gpt-4o" class="bg-surface2 text-text">OpenAI GPT-4o</option>
-        <option value="gemini-2.5-flash" class="bg-surface2 text-text">Gemini 2.5 Flash</option>
-        <option value="gemini-2.5-pro" class="bg-surface2 text-text">Gemini 2.5 Pro</option>
-        <option value="deepseek-r1" class="bg-surface2 text-text">DeepSeek R1</option>
-      </select>
-    </div>
-
-    <!-- Dynamic Variable Matrix Switcher -->
-    <button
-      @click="promptStore.showVariableMatrix.value = !promptStore.showVariableMatrix.value"
-      :class="[
-        'flex items-center gap-1.5 px-2.5 py-1 rounded font-mono text-[11px] transition-all border',
-        promptStore.showVariableMatrix.value
-          ? 'bg-miku/20 border-miku text-miku font-bold shadow-glow-miku'
-          : 'bg-surface2 hover:bg-surface3 border-border text-muted hover:text-text'
-      ]"
-      title="Toggle dynamic variable matrix playground"
+    <!-- Model target -->
+    <select
+      :class="$style.select"
+      aria-label="Model target"
+      :value="promptStore.currentPrompt.value?.modelTarget || 'claude-3.7-sonnet'"
+      @change="promptStore.updatePromptModel(($event.target as HTMLSelectElement).value as any)"
     >
-      <span class="font-bold text-acid">{'{x}'}</span>
-      <span>Variables ({{ promptStore.currentPromptVariables.value.length }})</span>
-    </button>
+      <option value="claude-3.7-sonnet">Claude 3.7 Sonnet</option>
+      <option value="gpt-4o">OpenAI GPT-4o</option>
+      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+      <option value="deepseek-r1">DeepSeek R1</option>
+    </select>
 
-    <div class="flex-1"></div>
+    <!-- Variable matrix toggle -->
+    <UButton
+      :class="[$style.btn, promptStore.showVariableMatrix.value && $style.on]"
+      :aria-pressed="promptStore.showVariableMatrix.value"
+      title="Toggle dynamic variable matrix"
+      @click="promptStore.showVariableMatrix.value = !promptStore.showVariableMatrix.value"
+    >
+      Variables <code :class="$style.count">{{ promptStore.currentPromptVariables.value.length }}</code>
+    </UButton>
 
-    <!-- Right Controls: Token Metrics, Term Bank & IO -->
-    <div class="flex items-center gap-2">
-      <!-- Save-state indicator -->
-      <span
-        id="save-state"
-        :data-state="saveState.status"
-        :title="saveTitle"
-        :class="['flex items-center gap-1.5 px-2 py-1 rounded border bg-surface2 font-mono text-[11px]', saveStateClass]"
-        aria-live="polite"
-      >
-        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-        <span>{{ saveState.status }}</span>
-      </span>
+    <div :class="$style.spacer" />
 
-      <!-- Token & Cost Counter -->
-      <div
-        class="hidden lg:flex items-center gap-2 px-2.5 py-1 bg-surface3 border border-border rounded font-mono text-[11px]"
-        :title="`Estimated ~${promptStore.totalTokens.value} tokens across all active sections. Pricing: $${promptStore.estimatedCost.value.pricing.inputCostPerMillion}/MTok`"
-      >
-        <span class="text-muted">Est:</span>
-        <span class="text-acid font-bold">~{{ promptStore.totalTokens.value }} toks</span>
-        <span class="text-border2">|</span>
-        <span class="text-green font-bold">${{ promptStore.estimatedCost.value.per1kRunsUsd.toFixed(4) }} / 1k runs</span>
-      </div>
+    <!-- Save state -->
+    <span
+      id="save-state"
+      :class="$style.saveState"
+      :data-state="saveState.status"
+      :title="saveTitle"
+      aria-live="polite"
+    >
+      <span :class="$style.dot" />
+      <span>{{ saveState.status }}</span>
+    </span>
 
-      <!-- Term Bank Palette Trigger -->
-      <button
-        @click="promptStore.showBankModal.value = true"
-        class="flex items-center gap-1 px-2.5 py-1 bg-surface2 hover:bg-surface3 border border-border hover:border-miku text-text hover:text-miku rounded transition-colors text-[11px] font-mono"
-        title="Open Lexicon & Guardrails Bank (Ctrl+K or Tab in editor)"
-      >
-        <span class="text-miku">◆</span>
-        <span>Term Bank</span>
-        <kbd class="hidden sm:inline text-[9px] px-1 py-0.2 rounded bg-surface3 text-muted2 border border-border">Tab</kbd>
-      </button>
+    <!-- Token estimate -->
+    <span
+      :class="$style.metric"
+      :title="`Estimated ~${promptStore.totalTokens.value} tokens across all active sections. Pricing: $${promptStore.estimatedCost.value.pricing.inputCostPerMillion}/MTok`"
+    >
+      <code :class="$style.count">~{{ promptStore.totalTokens.value }}</code> tokens
+    </span>
 
-      <!-- Export & Import Controls -->
-      <button
-        @click="handleExport"
-        class="px-2 py-1 bg-surface2 hover:bg-surface3 border border-border hover:border-acid text-text hover:text-acid rounded transition-colors text-[11px] font-mono"
-        title="Export entire studio workspace as JSON"
-      >
-        Export
-      </button>
+    <!-- Term bank -->
+    <UButton
+      :class="$style.btn"
+      title="Open Lexicon & Guardrails Bank"
+      @click="promptStore.showBankModal.value = true"
+    >
+      Term Bank <kbd :class="$style.kbd">Tab</kbd>
+    </UButton>
 
-      <button
-        @click="triggerImport"
-        class="px-2 py-1 bg-surface2 hover:bg-surface3 border border-border hover:border-acid text-text hover:text-acid rounded transition-colors text-[11px] font-mono"
-        title="Import workspace JSON"
-      >
-        Import
-      </button>
-      <input ref="fileInput" type="file" accept="application/json" class="hidden" @change="handleFileSelected" />
-    </div>
+    <!-- Theme -->
+    <UButton
+      :class="$style.btn"
+      title="Cycle theme"
+      @click="cycleTheme"
+    >
+      Theme: {{ theme }}
+    </UButton>
   </header>
 </template>
 
 <script setup lang="ts">
 const promptStore = usePromptStore()
-const fileInput = ref<HTMLInputElement | null>(null)
+const { theme, cycleTheme } = useTheme()
 
 const saveState = computed(() => promptStore.persist.value)
-const saveStateClass = computed(() =>
-  saveState.value.status === 'failed' ? 'text-pink border-pink'
-    : saveState.value.status === 'saving' ? 'text-amber border-border' : 'text-green border-border'
-)
 const saveTitle = computed(() => {
   const s = saveState.value
   const last = s.lastSavedAt ? `Last saved ${new Date(s.lastSavedAt).toLocaleTimeString()}` : 'Not saved yet this session'
@@ -172,39 +129,6 @@ const confirmDeletePrompt = () => {
     promptStore.deletePrompt(promptStore.currentPrompt.value.id)
   }
 }
-
-const handleExport = () => {
-  const json = promptStore.exportStoreJson()
-  const blob = new Blob([json], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `promptor_workspace_${new Date().toISOString().slice(0, 10)}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-const triggerImport = () => {
-  fileInput.value?.click()
-}
-
-const handleFileSelected = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = () => {
-    const content = reader.result as string
-    const res = promptStore.importStoreJson(content)
-    if (res.ok) {
-      alert('prompTOR workspace imported successfully!')
-    } else {
-      alert('Import failed: ' + res.error)
-    }
-  }
-  reader.readAsText(file)
-  target.value = ''
-}
 </script>
 
+<style module src="./Navbar.module.css"></style>

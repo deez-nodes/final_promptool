@@ -6,8 +6,8 @@
 
     <StudioEditor />
 
-    <template #preview>
-      <StudioPreview />
+    <template #board>
+      <StudioKanbanPane />
     </template>
   </NuxtLayout>
 </template>

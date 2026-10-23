@@ -1,0 +1,46 @@
+.shell {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--c-app-bg);
+  color: var(--c-app-fg);
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 18rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--c-pane-line);
+  background: var(--c-pane-bg);
+  user-select: none;
+}
+
+.editor {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-4) 6rem;
+  position: relative;
+}
+
+.board {
+  width: 34%;
+  min-width: 20rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--c-pane-line);
+  background: var(--c-pane-bg);
+}

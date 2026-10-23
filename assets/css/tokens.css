@@ -1,0 +1,193 @@
+/*
+ * assets/css/tokens.css: the one token source (DECIDED.md "Code", "Colour and type").
+ *
+ * Three levels, each only reading the level above it:
+ *   1. raw      --minty-*, --neutral-*, --font-*, --fs-*   (values)
+ *   2. semantic --t-*                                      (roles: surfaces, text, lines, the action, section hues)
+ *   3. component --c-*, and Nuxt UI's --ui-*               (what components read)
+ *
+ * Components read level 3 (or level 2 where no component token exists). They never
+ * read level 1 and never hold a colour literal.
+ *
+ * Themes: with no data-theme on <html> the page follows the system. data-theme="light",
+ * "dark" or "paper" pins one. Surfaces use light-dark(), so a theme is a color-scheme
+ * plus, at most, a few surface overrides.
+ *
+ * Unlayered on purpose: it must win over Nuxt UI's own :root/.dark variables.
+ */
+
+/* ── Level 1: raw tokens ─────────────────────────────────────────────────── */
+:root {
+  /* The _MINTY palette. One hue per section meaning. */
+  --minty-green:  oklch(0.72 0.19 150);
+  --minty-violet: oklch(0.62 0.20 300);
+  --minty-blue:   oklch(0.62 0.18 255);
+  --minty-cyan:   oklch(0.75 0.14 200);
+  --minty-red:    oklch(0.62 0.22 25);
+  --minty-amber:  oklch(0.78 0.17 75);
+
+  /* Neutral black-and-white steps. No tint, no haze. */
+  --neutral-white:   #ffffff;
+  --neutral-50:      #f6f6f6;
+  --neutral-100:     #ececec;
+  --neutral-200:     #d4d4d4;
+  --neutral-300:     #a8a8a8;
+  --neutral-500:     #6f6f6f;
+  --neutral-600:     #4a4a4a;
+  --neutral-800:     #2e2e2e;
+  --neutral-850:     #1c1c1c;
+  --neutral-900:     #0e0e0e;
+  --neutral-black:   #000000;
+  --neutral-dark-fg:   #f2f2f2;
+  --neutral-dark-fg-2: #b8b8b8;
+  --neutral-dark-fg-3: #8a8a8a;
+  --neutral-dark-line-2: #5a5a5a;
+  --neutral-light-fg:  #111111;
+
+  /* Paper: a softer neutral light theme. Still grey, never tinted. */
+  --paper-bg: #fafafa; --paper-bg-2: #f0f0f0; --paper-bg-3: #e4e4e4;
+  --paper-fg: #1a1a1a; --paper-fg-2: #555555; --paper-fg-3: #6e6e6e;
+  --paper-line: #cfcfcf; --paper-line-2: #a0a0a0;
+
+  /* Type. Body 16px, nothing under 14px; rem so user font settings still apply. */
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+  --fs-body: 1rem;        /* 16px */
+  --fs-small: 0.875rem;   /* 14px, the floor */
+  --fs-title: 1.25rem;    /* 20px */
+  --fs-h1: 1.75rem;
+  --fs-h2: 1.375rem;
+  --fs-h3: 1.1875rem;
+  --lh-body: 1.5;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --radius-1: 4px;
+  --radius-2: 8px;
+}
+
+/* ── Level 2: semantic roles ─────────────────────────────────────────────── */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces, text and lines: neutral. */
+  --t-bg:     light-dark(var(--neutral-white),   var(--neutral-black));
+  --t-bg-2:   light-dark(var(--neutral-50),      var(--neutral-900));
+  --t-bg-3:   light-dark(var(--neutral-100),     var(--neutral-850));
+  --t-fg:     light-dark(var(--neutral-light-fg), var(--neutral-dark-fg));
+  --t-fg-2:   light-dark(var(--neutral-600),     var(--neutral-dark-fg-2));
+  --t-fg-3:   light-dark(var(--neutral-500),     var(--neutral-dark-fg-3));
+  --t-line:   light-dark(var(--neutral-200),     var(--neutral-800));
+  --t-line-2: light-dark(var(--neutral-300),     var(--neutral-dark-line-2));
+
+  /* One inverted action colour. */
+  --t-action:    var(--t-fg);
+  --t-action-fg: var(--t-bg);
+
+  /* Section meanings, one hue each. */
+  --t-role:        var(--minty-green);   /* who */
+  --t-context:     var(--minty-violet);  /* what it knows */
+  --t-goal:        var(--minty-blue);    /* where it ends */
+  --t-task:        var(--minty-cyan);    /* what to do */
+  --t-constraints: var(--minty-red);     /* limits */
+  --t-output:      var(--minty-amber);   /* what comes back */
+
+  /* Status reuses the meaning hues; it never introduces a new one. */
+  --t-danger: var(--t-constraints);
+  --t-warn:   var(--t-output);
+  --t-ok:     var(--t-role);
+
+  /* How much neutral surface stays when a card takes its hue. */
+  --t-hue-mix: 92%;
+
+  /* Styling by element. */
+  --t-h1-weight: 700; --t-h2-weight: 650; --t-h3-weight: 600;
+  --t-strong-weight: 700; --t-em-style: italic;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --t-hue-mix: 86%; }
+}
+:root[data-theme="light"] { color-scheme: light; --t-hue-mix: 92%; }
+:root[data-theme="dark"]  { color-scheme: dark;  --t-hue-mix: 86%; }
+:root[data-theme="paper"] {
+  color-scheme: light;
+  --t-bg: var(--paper-bg); --t-bg-2: var(--paper-bg-2); --t-bg-3: var(--paper-bg-3);
+  --t-fg: var(--paper-fg); --t-fg-2: var(--paper-fg-2); --t-fg-3: var(--paper-fg-3);
+  --t-line: var(--paper-line); --t-line-2: var(--paper-line-2);
+  --t-hue-mix: 90%;
+  --t-h1-weight: 600; --t-h2-weight: 600; --t-h3-weight: 500;
+}
+
+/* Colour follows the section's type, custom sections included. */
+[data-type="role"]        { --hue: var(--t-role); }
+[data-type="context"]     { --hue: var(--t-context); }
+[data-type="goal"]        { --hue: var(--t-goal); }
+[data-type="task"]        { --hue: var(--t-task); }
+[data-type="constraints"] { --hue: var(--t-constraints); }
+[data-type="output"]      { --hue: var(--t-output); }
+
+/* ── Level 3: component tokens ───────────────────────────────────────────── */
+:root {
+  --c-app-bg: var(--t-bg);
+  --c-app-fg: var(--t-fg);
+  --c-bar-bg: var(--t-bg);
+  --c-bar-height: 3.25rem;
+  --c-pane-bg: var(--t-bg-2);
+  --c-pane-line: var(--t-line);
+  --c-pane-head-fg: var(--t-fg-2);
+
+  --c-control-bg: var(--t-bg);
+  --c-control-fg: var(--t-fg);
+  --c-control-line: var(--t-line-2);
+  --c-control-hover-bg: var(--t-bg-3);
+  --c-focus-ring: var(--t-fg);
+
+  --c-action-bg: var(--t-action);
+  --c-action-fg: var(--t-action-fg);
+
+  --c-card-bg: var(--t-bg);
+  --c-card-line: var(--t-line);
+  --c-card-head-bg: var(--t-bg-2);
+  /* A card without a type has no hue; a typed card sets --hue above. */
+  --c-card-hue: var(--hue, var(--t-line-2));
+  --c-card-focus-bg: color-mix(in oklch, var(--t-bg) var(--t-hue-mix), var(--c-card-hue));
+
+  --c-row-active-bg: var(--t-bg-3);
+  --c-row-active-mark: var(--t-action);
+
+  --c-tag-fg: var(--t-fg-2);
+  --c-count-fg: var(--t-fg-3);
+  --c-kbd-bg: var(--t-bg-3);
+  --c-kbd-line: var(--t-line-2);
+
+  --c-overlay: color-mix(in oklch, var(--neutral-black) 60%, transparent);
+
+  --c-column-line: var(--t-line-2);
+  --c-column-bg: var(--t-bg);
+
+  /* Nuxt UI reads these; point them at our roles so its parts match. */
+  --ui-bg: var(--t-bg);
+  --ui-bg-muted: var(--t-bg-2);
+  --ui-bg-elevated: var(--t-bg-3);
+  --ui-bg-accented: var(--t-bg-3);
+  --ui-bg-inverted: var(--t-action);
+  --ui-text: var(--t-fg);
+  --ui-text-muted: var(--t-fg-2);
+  --ui-text-dimmed: var(--t-fg-3);
+  --ui-text-toned: var(--t-fg-2);
+  --ui-text-highlighted: var(--t-fg);
+  --ui-text-inverted: var(--t-action-fg);
+  --ui-border: var(--t-line);
+  --ui-border-muted: var(--t-line);
+  --ui-border-accented: var(--t-line-2);
+  --ui-border-inverted: var(--t-action);
+  --ui-primary: var(--t-action);
+  --ui-radius: var(--radius-1);
+}
+
+@media (forced-colors: active) {
+  :root { --t-bg: Canvas; --t-fg: CanvasText; --t-line: CanvasText; --t-line-2: CanvasText; }
+}
