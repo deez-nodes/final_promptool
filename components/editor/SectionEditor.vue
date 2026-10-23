@@ -193,7 +193,20 @@ const External = Annotation.define<boolean>()
 const vimSlot = new Compartment()
 
 // Enter continues "- ", "* ", "1. " lists; Enter on an empty item ends the list (DZ-53).
-const continueList = insertNewlineContinueMarkupCommand({ nonTightLists: false })
+const continueMarkup = insertNewlineContinueMarkupCommand({ nonTightLists: false })
+// Lists continue on Enter, quotes do not: Enter on a "> " line, or on the answer line under it
+// (Markdown reads it as a lazy part of the quote), falls through to the plain newline, so the
+// next line is the answer under the quote (DZ-53, DZ-54).
+const inQuote = (state: EditorState): boolean => {
+  const pos = state.selection.main.head
+  if (/^\s*>/.test(state.doc.lineAt(pos).text)) return true
+  const node = syntaxTree(state).resolveInner(pos, -1)
+  for (let n: typeof node | null = node; n; n = n.parent) {
+    if (n.name === 'Blockquote') return true
+  }
+  return false
+}
+const continueList = (target: EditorView): boolean => !inQuote(target.state) && continueMarkup(target)
 // Ctrl/Cmd+Enter is the app's Copy, so the editor must not claim it.
 const baseKeys = defaultKeymap.filter(b => b.key !== 'Mod-Enter')
 
