@@ -58,10 +58,11 @@ export const paneStorageName = (id: PaneId): string =>
  * The last pane that is not the sidebar takes the rest of the row (no size of its own).
  */
 export const PANE_SIZE: Readonly<Record<PaneId, { default: number; min: number; max: number }>> = {
-  sidebar: { default: 18, min: 10, max: 40 },
-  sections: { default: 42, min: 15, max: 75 },
-  'sections-2': { default: 38, min: 15, max: 75 },
-  kanban: { default: 40, min: 15, max: 75 }
+  // No upper cap: the record says panes are resizable, nothing more. Minimums are Nuxt UI's defaults.
+  sidebar: { default: 18, min: 10, max: 100 },
+  sections: { default: 42, min: 15, max: 100 },
+  'sections-2': { default: 38, min: 15, max: 100 },
+  kanban: { default: 40, min: 15, max: 100 }
 }
 
 const PANE_IDS = Object.keys(PANE_KIND) as PaneId[]
