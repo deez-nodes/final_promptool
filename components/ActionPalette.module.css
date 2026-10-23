@@ -1,0 +1,89 @@
+/* Nuxt UI's UModal + UCommandPalette, restyled through their `ui` slots (unlayered, so these win over its utilities). */
+
+.overlay {
+  background: var(--c-overlay);
+}
+
+.content {
+  width: min(40rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: calc(100vh - 4rem);
+  border: 1px solid var(--c-card-line);
+  border-radius: var(--radius-2);
+  background: var(--c-card-bg);
+  color: var(--c-app-fg);
+  box-shadow: none;
+}
+
+.root {
+  min-height: 0;
+  max-height: calc(100vh - 4rem);
+  border-color: var(--c-pane-line);
+}
+
+.input {
+  font-size: var(--fs-body);
+}
+
+.viewport {
+  border-color: var(--c-pane-line);
+}
+
+.group {
+  padding: var(--space-1) var(--space-2);
+}
+
+.label {
+  padding: var(--space-2) var(--space-2) var(--space-1);
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--t-fg-2);
+}
+
+.item {
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--fs-body);
+  border-radius: var(--radius-1);
+  cursor: pointer;
+}
+.item[data-highlighted] {
+  background: var(--c-row-active-bg);
+}
+
+.itemLabel {
+  color: var(--t-fg);
+}
+
+.itemLabelBase {
+  color: var(--t-fg);
+}
+
+/* The binding is searchable as the suffix; the kbd on the right shows it. */
+.itemLabelSuffix {
+  display: none;
+}
+
+.itemDescription {
+  font-size: var(--fs-small);
+  color: var(--t-fg-2);
+}
+
+.empty {
+  padding: var(--space-4);
+  font-size: var(--fs-small);
+  color: var(--t-fg-2);
+}
+
+.kbd {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--c-kbd-line);
+  border-radius: var(--radius-1);
+  background: var(--c-kbd-bg);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+}

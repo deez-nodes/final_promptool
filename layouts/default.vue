@@ -3,155 +3,134 @@
     <Navbar />
 
     <!--
-      Panes (DECIDED.md Layout "Panes are resizable, movable and addable", DZ-47): sidebar,
-      sections (and a second sections pane for another message), the Kanban edits board. Each
-      divider drags (pointer) or moves with ← → when focused; double-click or Enter resets the
-      sizes. Sizes, order and which panes are open persist through useLayoutPrefs. No preview
-      pane: the output stays hidden until asked for.
+      Panes (DECIDED.md Layout "Panes are resizable, movable and addable", DZ-47; Stack: "Nuxt UI
+      already ships the resizable panels, sidebar ..."): Nuxt UI's UDashboardGroup holds the
+      sidebar (UDashboardSidebar, resizable and collapsible) and each other pane (UDashboardPanel:
+      sections, a second sections pane, the Kanban edits board). Nuxt UI resizes them with its
+      UDashboardResizeHandle (double-click resets that pane) and keeps their sizes in cookies.
+      Movable and addable are layered on top: the panes render from the ordered list in
+      useLayoutPrefs (Move left/right in each pane's menu), and only the open ones render
+      (add from the More menu, close from the pane menu). The last pane that is not the
+      sidebar fills the rest of the row. No preview pane: the output stays hidden until asked for.
     -->
-    <div ref="row" :class="$style.body" :data-dragging="dragging ? 'true' : undefined">
-      <template v-for="(p, i) in panes" :key="p.id">
-        <div
-          v-if="i > 0"
-          role="separator"
-          tabindex="0"
-          aria-orientation="vertical"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          :aria-valuenow="shareOf(i)"
-          :aria-label="'Resize ' + PANE_LABEL[panes[i - 1].id] + ' and ' + PANE_LABEL[p.id]"
-          title="Drag to resize, or focus and press ← →. Double-click or Enter resets the sizes."
-          :class="$style.divider"
-          :data-divider="panes[i - 1].id + '|' + p.id"
-          @pointerdown="startDrag($event, i)"
-          @keydown="onDividerKey($event, i)"
-          @dblclick="resetPaneSizes()"
-        />
-        <section
-          :id="DOM_ID[p.id]"
-          :class="$style.pane"
+    <UDashboardGroup storage="cookie" :storage-key="PANE_STORAGE_KEY" :ui="{ base: $style.group }">
+      <template v-for="(p, i) in panes" :key="paneKey(p)">
+        <UDashboardSidebar
+          v-if="p.kind === 'sidebar'"
+          :id="p.id"
+          v-model:collapsed="sidebarCollapsed"
+          :side="sidebarSide(i)"
+          resizable
+          collapsible
+          :default-size="PANE_SIZE[p.id].default"
+          :min-size="PANE_SIZE[p.id].min"
+          :max-size="PANE_SIZE[p.id].max"
+          :toggle="false"
           :data-pane="p.id"
           :data-kind="p.kind"
-          :style="{ flexGrow: p.size }"
+          role="region"
           :aria-label="PANE_LABEL[p.id] + ' pane'"
+          :ui="{ root: $style.sidebar, header: $style.sidebarHead, body: $style.sidebarBody, handle: $style.handle }"
         >
-          <header :class="$style.paneHead">
-            <span :class="$style.paneTitle">{{ PANE_LABEL[p.id] }}</span>
-            <UDropdownMenu :items="paneMenu(p, i)" :content="{ align: 'end' }" :ui="{ content: $style.menu, item: $style.menuItem }">
-              <UButton
-                :class="$style.paneMenu"
-                :aria-label="PANE_LABEL[p.id] + ' pane menu'"
-                title="Move or close this pane"
-              >
-                ⋯
-              </UButton>
-            </UDropdownMenu>
-          </header>
-          <div :class="$style.paneBody">
+          <template #header="{ collapsed }">
+            <UButton
+              v-if="collapsed"
+              :class="$style.paneMenu"
+              aria-label="Expand the sidebar"
+              title="Expand the sidebar (or drag its edge)"
+              @click="sidebarCollapsed = false"
+            >
+              »
+            </UButton>
+            <template v-else>
+              <span :class="$style.paneTitle">{{ PANE_LABEL[p.id] }}</span>
+              <UDropdownMenu :items="paneMenu(p, i)" :content="{ align: 'end' }" :ui="{ content: $style.menu, item: $style.menuItem }">
+                <UButton :class="$style.paneMenu" :aria-label="PANE_LABEL[p.id] + ' pane menu'" title="Move, collapse or close this pane">
+                  ⋯
+                </UButton>
+              </UDropdownMenu>
+            </template>
+          </template>
+          <template #default="{ collapsed }">
+            <slot v-if="!collapsed" :name="p.kind" :pane="p" />
+          </template>
+        </UDashboardSidebar>
+
+        <UDashboardPanel
+          v-else
+          :id="p.id"
+          :resizable="!isFill(p)"
+          :default-size="isFill(p) ? undefined : PANE_SIZE[p.id].default"
+          :min-size="PANE_SIZE[p.id].min"
+          :max-size="PANE_SIZE[p.id].max"
+          :data-pane="p.id"
+          :data-kind="p.kind"
+          :data-fill="isFill(p) ? 'true' : undefined"
+          role="region"
+          :aria-label="PANE_LABEL[p.id] + ' pane'"
+          :ui="panelUi(p)"
+        >
+          <template #header>
+            <header :class="$style.paneHead">
+              <span :class="$style.paneTitle">{{ PANE_LABEL[p.id] }}</span>
+              <UDropdownMenu :items="paneMenu(p, i)" :content="{ align: 'end' }" :ui="{ content: $style.menu, item: $style.menuItem }">
+                <UButton :class="$style.paneMenu" :aria-label="PANE_LABEL[p.id] + ' pane menu'" title="Move or close this pane">
+                  ⋯
+                </UButton>
+              </UDropdownMenu>
+            </header>
+          </template>
+          <template #body>
             <slot :name="p.kind" :pane="p" />
-          </div>
-        </section>
+          </template>
+        </UDashboardPanel>
       </template>
-    </div>
+    </UDashboardGroup>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import { PANE_LABEL, PANE_MIN_PX, type PaneId, type PaneSpec } from '~/composables/useLayoutPrefs'
+import { PANE_LABEL, PANE_SIZE, PANE_STORAGE_KEY, type PaneSpec } from '~/composables/useLayoutPrefs'
 
-const { panes, resizePair, resetPaneSizes, movePane, closePane } = useLayoutPrefs()
+const style = useCssModule()
+const { panes, loaded, paneEpoch, sidebarCollapsed, movePane, closePane } = useLayoutPrefs()
 const { pasteFromFile } = useFilePaste()
 
-/** Stable element ids (the old shell's ids kept for the first three). */
-const DOM_ID: Readonly<Record<PaneId, string>> = {
-  sidebar: 'sidebar',
-  sections: 'editor',
-  'sections-2': 'editor-2',
-  kanban: 'board-pane'
-}
+/** The pane that takes the rest of the row: the last one that is not the sidebar. */
+const fillId = computed(() => [...panes.value].reverse().find(p => p.kind !== 'sidebar')?.id)
+const isFill = (p: PaneSpec) => p.id === fillId.value
 
-const row = ref<HTMLElement | null>(null)
-const dragging = ref(false)
+/** The sidebar's handle goes on its inner side: after it, or before it when it is the last pane. */
+const sidebarSide = (i: number) => (i === panes.value.length - 1 ? 'right' : 'left')
 
-/** Width the panes share: the row minus the dividers. */
-const usableWidth = (): number => {
-  const el = row.value
-  if (!el) return 1
-  let w = el.clientWidth
-  el.querySelectorAll<HTMLElement>('[role="separator"]').forEach((d) => {
-    w -= d.offsetWidth
-  })
-  return Math.max(1, w)
-}
+/**
+ * A prerendered page (nuxt generate, the Tauri build) has no cookies at render time, so its
+ * panes are re-made once the client has loaded, to pick up the sizes Nuxt UI saved.
+ */
+const prerendered = !!useNuxtApp().payload.prerenderedAt
 
-/** The left pane's share of the pair a divider sits between, 0..100. */
-const shareOf = (i: number): number => {
-  const a = panes.value[i - 1]
-  const b = panes.value[i]
-  return a && b ? Math.round((a.size / (a.size + b.size)) * 100) : 50
-}
+/**
+ * Nuxt UI picks a pane's storage when the pane is made, so a pane is re-made when it starts or
+ * stops filling the row (it only has a saved size while it does not), and on Reset pane sizes.
+ */
+const paneKey = (p: PaneSpec) =>
+  p.id + (isFill(p) ? ':fill:' : ':sized:') + paneEpoch.value + (prerendered && !loaded.value ? ':prerendered' : '')
 
-/** New sizes for the pair either side of divider i, kept above both panes' minimum widths. */
-const setPair = (i: number, leftSize: number, sum: number) => {
-  const a = panes.value[i - 1]
-  const b = panes.value[i]
-  if (!a || !b) return
-  const w = usableWidth()
-  const minA = PANE_MIN_PX[a.kind] / w
-  const minB = PANE_MIN_PX[b.kind] / w
-  const left = minA > sum - minB ? sum / 2 : Math.min(Math.max(leftSize, minA), sum - minB)
-  resizePair(a.id, left, b.id, sum - left)
-}
-
-const startDrag = (e: PointerEvent, i: number) => {
-  if (e.button !== 0) return
-  const a = panes.value[i - 1]
-  const b = panes.value[i]
-  if (!a || !b) return
-  e.preventDefault()
-  const handle = e.currentTarget as HTMLElement
-  handle.focus()
-  handle.setPointerCapture(e.pointerId)
-  const startX = e.clientX
-  const startLeft = a.size
-  const sum = a.size + b.size
-  const w = usableWidth()
-  dragging.value = true
-  const onMove = (ev: PointerEvent) => setPair(i, startLeft + (ev.clientX - startX) / w, sum)
-  const onUp = () => {
-    dragging.value = false
-    handle.removeEventListener('pointermove', onMove)
-    handle.removeEventListener('pointerup', onUp)
-    handle.removeEventListener('pointercancel', onUp)
-    if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId)
-  }
-  handle.addEventListener('pointermove', onMove)
-  handle.addEventListener('pointerup', onUp)
-  handle.addEventListener('pointercancel', onUp)
-}
-
-/** Keyboard first: ← → move the divider (Shift for bigger steps), Home/End go to the limits. */
-const onDividerKey = (e: KeyboardEvent, i: number) => {
-  const a = panes.value[i - 1]
-  const b = panes.value[i]
-  if (!a || !b || e.ctrlKey || e.metaKey || e.altKey) return
-  const sum = a.size + b.size
-  const step = e.shiftKey ? 0.1 : 0.02
-  if (e.key === 'ArrowLeft') setPair(i, a.size - step, sum)
-  else if (e.key === 'ArrowRight') setPair(i, a.size + step, sum)
-  else if (e.key === 'Home') setPair(i, 0, sum)
-  else if (e.key === 'End') setPair(i, sum, sum)
-  else if (e.key === 'Enter') resetPaneSizes()
-  else return
-  e.preventDefault()
-}
+const panelUi = (p: PaneSpec) => ({
+  root: isFill(p) ? style.pane + ' ' + style.fill : style.pane,
+  body: p.kind === 'sections' ? style.sectionsBody : style.paneBody,
+  handle: style.handle
+})
 
 const paneMenu = (p: PaneSpec, i: number): DropdownMenuItem[][] => {
   const groups: DropdownMenuItem[][] = [[
     { label: 'Move left', disabled: i === 0, onSelect: () => movePane(p.id, -1) },
     { label: 'Move right', disabled: i === panes.value.length - 1, onSelect: () => movePane(p.id, 1) }
   ]]
+  if (p.kind === 'sidebar') {
+    groups.push([{ label: 'Collapse the sidebar', onSelect: () => { sidebarCollapsed.value = true } }])
+  }
   if (p.kind === 'sections') {
     groups.push([{ label: 'Paste from file (' + keysOf('pasteFile') + ')', onSelect: () => void pasteFromFile() }])
   }

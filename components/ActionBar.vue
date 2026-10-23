@@ -42,7 +42,7 @@
 
     <span id="action-notice" :class="$style.notice" role="status" aria-live="polite">{{ store.notice.value }}</span>
 
-    <KeysOverlay />
+    <ActionPalette />
   </nav>
 </template>
 

@@ -8,30 +8,47 @@
   color: var(--c-app-fg);
 }
 
-.body {
+/*
+ * Nuxt UI's dashboard parts, restyled through their `ui` slots. These rules are unlayered, so
+ * they win over Nuxt UI's Tailwind utilities: the group sits under the navbar instead of
+ * covering the window, and the panes show at every width (Nuxt UI hides them below `lg`).
+ * Sizing and resizing stay Nuxt UI's: each pane's width is its `--width`.
+ */
+.group {
+  position: relative;
+  inset: auto;
   flex: 1;
   display: flex;
   min-height: 0;
   overflow: hidden;
 }
-.body[data-dragging="true"] {
-  cursor: col-resize;
-  user-select: none;
-}
 
-/* One pane: its width is a share of the row (flex-grow from the saved fraction). */
+.sidebar,
 .pane {
-  flex: 1 1 0;
   display: flex;
   flex-direction: column;
-  min-width: 18rem;
+  flex-shrink: 1;
+  width: var(--width, auto);
   min-height: 0;
   overflow: hidden;
+  border-inline-end: 1px solid var(--c-pane-line);
   background: var(--c-pane-bg);
 }
-.pane[data-kind="sidebar"] {
+.sidebar:last-child,
+.pane:last-child {
+  border-inline-end: 0;
+}
+
+/* Narrowest a pane gets; Nuxt UI's min-size is a share of the row, this keeps the content usable. */
+.sidebar {
   min-width: 12rem;
   user-select: none;
+}
+.sidebar[data-collapsed="true"] {
+  min-width: 3rem;
+}
+.pane {
+  min-width: 18rem;
 }
 .pane[data-kind="kanban"] {
   min-width: 16rem;
@@ -40,15 +57,40 @@
   background: var(--c-app-bg);
 }
 
+/* The pane that takes the rest of the row. */
+.fill {
+  flex: 1 1 0;
+}
+
+/* Nuxt UI's resize handle: a thin hit area on the pane border (its ::before widens it). */
+.handle {
+  display: block;
+  flex: 0 0 0;
+  z-index: 1;
+}
+.handle::before {
+  transition: background-color 120ms;
+}
+.handle:hover::before,
+[data-dragging="true"] + .handle::before {
+  background: color-mix(in oklch, var(--t-line-2) 60%, transparent);
+}
+
+.sidebarHead,
 .paneHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
   flex-shrink: 0;
+  height: auto;
   padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
   border-bottom: 1px solid var(--c-pane-line);
   background: var(--c-pane-bg);
+}
+.sidebar[data-collapsed="true"] .sidebarHead {
+  justify-content: center;
+  padding: var(--space-1);
 }
 
 /* Pane headings stay small and grey; section titles are the clear headings (DZ-46). */
@@ -75,40 +117,24 @@
   color: var(--c-control-fg);
 }
 
+.sidebarBody,
 .paneBody {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
 }
-.pane[data-kind="sections"] .paneBody {
+
+.sectionsBody {
+  flex: 1;
+  min-height: 0;
   display: block;
   overflow-y: auto;
   padding: var(--space-4) var(--space-4) 6rem;
   position: relative;
-}
-
-/* A divider between two panes: drag it, or focus it and use the arrow keys. */
-.divider {
-  flex: 0 0 6px;
-  position: relative;
-  cursor: col-resize;
-  background: linear-gradient(var(--c-pane-line), var(--c-pane-line)) center / 1px 100% no-repeat;
-  touch-action: none;
-}
-.divider::after {
-  content: "";
-  position: absolute;
-  inset: 0 -3px;
-}
-.divider:hover,
-.divider:focus-visible,
-.body[data-dragging="true"] .divider:active {
-  background: var(--c-control-line);
-}
-.divider:focus-visible {
-  outline: 2px solid var(--c-focus-ring);
-  outline-offset: -2px;
 }
 
 .menu {

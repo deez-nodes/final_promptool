@@ -36,25 +36,16 @@
   color: var(--c-count-fg);
 }
 
-.list,
-.sublist {
+.list {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.sublist {
-  padding-left: var(--space-6);
 }
 
 .item {
   display: flex;
   align-items: stretch;
   border-left: 3px solid var(--hue, transparent);
-}
-
-.message > .item {
-  border-left: none;
 }
 
 .row {
@@ -113,26 +104,110 @@
   color: var(--t-fg-3);
 }
 
-.toggle,
+/* ── The library and the conversation: Nuxt UI's UTree, through its `ui` slots ── */
+
+.tree {
+  flex-shrink: 0;
+  margin: 0;
+  padding: var(--space-1) 0;
+  list-style: none;
+  border-bottom: 1px solid var(--c-pane-line);
+}
+
+.treeItem,
+.treeNested {
+  list-style: none;
+}
+
+.treeChildren {
+  margin: 0 0 0 var(--space-4);
+  padding: 0;
+  border-inline-start: 1px solid var(--c-pane-line);
+}
+
+.treeLink {
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  color: var(--c-app-fg);
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  text-align: left;
+  cursor: pointer;
+}
+.treeLink::before {
+  border-radius: 0;
+}
+.treeLink:hover::before {
+  background: var(--c-control-hover-bg);
+}
+.treeLink[data-selected]::before {
+  background: var(--c-row-active-bg);
+  box-shadow: inset 2px 0 0 var(--c-row-active-mark);
+}
+.treeLink:focus-visible {
+  outline: 2px solid var(--c-focus-ring);
+  outline-offset: -2px;
+}
+.treeLink[data-disabled] {
+  cursor: default;
+  opacity: 1;
+}
+
+.treeLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.treeTrailing {
+  flex-shrink: 0;
+}
+
+.node {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+/* The two group nodes read as the small grey pane headings (DZ-46). */
+.node[data-kind="group"] .rowTitle {
+  color: var(--c-pane-head-fg);
+}
+.node[data-kind="note"] .rowTitle {
+  font-weight: 400;
+  white-space: normal;
+  color: var(--t-fg-3);
+}
+
+.twisty {
+  flex-shrink: 0;
+  width: 1rem;
+  color: var(--t-fg-3);
+  text-align: center;
+}
+
+/* The section type's colour (data-type sets --hue). */
+.hue {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 3px;
+  margin-inline-end: calc(1rem - 3px);
+  border-radius: 2px;
+  background: var(--hue, var(--t-line-2));
+}
+
 .remove {
   flex-shrink: 0;
-  width: 1.75rem;
-  border: none;
-  background: transparent;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-1);
   color: var(--t-fg-3);
   font-size: var(--fs-small);
   cursor: pointer;
 }
-.toggle:hover,
 .remove:hover {
   background: var(--c-control-hover-bg);
-  color: var(--c-app-fg);
+  color: var(--t-danger);
 }
-.remove:hover { color: var(--t-danger); }
 
-.empty {
-  margin: 0;
-  padding: var(--space-1) var(--space-3) var(--space-3);
-  font-size: var(--fs-small);
-  color: var(--t-fg-3);
+.noRemove {
+  display: none;
 }

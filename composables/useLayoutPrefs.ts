@@ -4,14 +4,18 @@ import type { EffectScope } from 'vue'
  * Layout preferences, stored under their own key so that clearing or corrupting
  * them never touches workspace data (`promptor:workspace:v1`), and vice versa.
  *
- * Panes (DECIDED.md Layout "Panes are resizable, movable and addable", DZ-47): an ordered
- * list of panes, each with its width as a fraction of the row (the fractions sum to 1).
- * The main sections pane always stays; the sidebar, a second sections pane (another
- * message) and the Kanban edits board can be closed and added again, and any pane moves
- * left or right. Loaded on mount (app.vue), so server render and hydration use the defaults.
+ * Panes (DECIDED.md Layout "Panes are resizable, movable and addable", DZ-47; Stack: "Nuxt UI
+ * already ships the resizable panels, sidebar ..."): the panes are Nuxt UI's UDashboardSidebar
+ * and UDashboardPanel inside a UDashboardGroup (layouts/default.vue). Nuxt UI resizes them and
+ * persists each pane's size (and the sidebar's collapsed state) itself, in cookies under
+ * PANE_STORAGE_KEY. What Nuxt UI does not do is kept here: the order of the panes (movable)
+ * and which are open (addable). The main sections pane always stays; the sidebar, a second
+ * sections pane (another message) and the Kanban edits board can be closed and added again,
+ * and any pane moves left or right. Loaded on mount (app.vue), so server render and
+ * hydration use the defaults.
  */
 export const LAYOUT_PREFS_KEY = 'promptool:layout'
-const PREFS_VERSION = 2
+const PREFS_VERSION = 3
 const PREFS_DEBOUNCE_MS = 400
 
 export type PaneKind = 'sidebar' | 'sections' | 'kanban'
@@ -21,8 +25,6 @@ export type PaneId = 'sidebar' | 'sections' | 'sections-2' | 'kanban'
 export interface PaneSpec {
   id: PaneId
   kind: PaneKind
-  /** Width as a fraction of the pane row (0..1). */
-  size: number
   /** sections-2 only: the message it shows (null = the newest one that is not current). */
   docId: string | null
 }
@@ -41,19 +43,25 @@ export const PANE_LABEL: Readonly<Record<PaneId, string>> = {
   kanban: 'Edits board'
 }
 
-/** Default share of each pane; a layout with fewer panes divides by what is there. */
-export const PANE_WEIGHT: Readonly<Record<PaneId, number>> = {
-  sidebar: 0.18,
-  sections: 0.42,
-  'sections-2': 0.38,
-  kanban: 0.4
-}
+/**
+ * The UDashboardGroup storage key: Nuxt UI keeps each pane's size in a cookie named
+ * `<key>-panel-<id>` (the sidebar: `<key>-sidebar-<id>`).
+ */
+export const PANE_STORAGE_KEY = 'promptool-panes'
 
-/** Narrowest a pane may get, in CSS px (the divider stops there). */
-export const PANE_MIN_PX: Readonly<Record<PaneKind, number>> = {
-  sidebar: 192,
-  sections: 288,
-  kanban: 256
+/** The cookie Nuxt UI keeps a pane's size in (see useResizable in @nuxt/ui). */
+export const paneStorageName = (id: PaneId): string =>
+  PANE_STORAGE_KEY + (PANE_KIND[id] === 'sidebar' ? '-sidebar-' : '-panel-') + id
+
+/**
+ * Nuxt UI size props per pane, in % of the pane row: default-size, min-size, max-size.
+ * The last pane that is not the sidebar takes the rest of the row (no size of its own).
+ */
+export const PANE_SIZE: Readonly<Record<PaneId, { default: number; min: number; max: number }>> = {
+  sidebar: { default: 18, min: 10, max: 40 },
+  sections: { default: 42, min: 15, max: 75 },
+  'sections-2': { default: 38, min: 15, max: 75 },
+  kanban: { default: 40, min: 15, max: 75 }
 }
 
 const PANE_IDS = Object.keys(PANE_KIND) as PaneId[]
@@ -65,20 +73,8 @@ export interface LayoutPrefs {
   timer: { enabled: boolean; workMinutes: number; breakMinutes: number }
 }
 
-/** Sizes back to the default shares for the panes present, in their current order. */
-export function resetSizes(panes: readonly PaneSpec[]): PaneSpec[] {
-  const total = panes.reduce((t, p) => t + PANE_WEIGHT[p.id], 0) || 1
-  return panes.map(p => ({ ...p, size: PANE_WEIGHT[p.id] / total }))
-}
-
-/** Scale sizes so they sum to 1. */
-const normalise = (panes: PaneSpec[]): PaneSpec[] => {
-  const total = panes.reduce((t, p) => t + p.size, 0)
-  return total > 0 ? panes.map(p => ({ ...p, size: p.size / total })) : resetSizes(panes)
-}
-
 export const defaultPanes = (): PaneSpec[] =>
-  resetSizes((['sidebar', 'sections', 'kanban'] as PaneId[]).map(id => ({ id, kind: PANE_KIND[id], size: 0, docId: null })))
+  (['sidebar', 'sections', 'kanban'] as PaneId[]).map(id => ({ id, kind: PANE_KIND[id], docId: null }))
 
 export function defaultLayoutPrefs(): LayoutPrefs {
   return {
@@ -105,12 +101,11 @@ export function normalizePanes(input: unknown): PaneSpec[] {
     panes.push({
       id,
       kind: PANE_KIND[id],
-      size: num(raw.size, PANE_WEIGHT[id], 0.01, 1),
       docId: id === 'sections-2' && typeof raw.docId === 'string' ? raw.docId : null
     })
   }
-  if (!seen.has('sections')) panes.push({ id: 'sections', kind: 'sections', size: PANE_WEIGHT.sections, docId: null })
-  return normalise(panes)
+  if (!seen.has('sections')) panes.push({ id: 'sections', kind: 'sections', docId: null })
+  return panes
 }
 
 /** Field-by-field merge onto defaults: a bad field falls back alone, never the whole object. */
@@ -139,6 +134,10 @@ let prefsScope: EffectScope | null = null
 export function useLayoutPrefs() {
   const prefs = useState<LayoutPrefs>('promptool_layout_prefs', defaultLayoutPrefs)
   const loaded = useState<boolean>('promptool_layout_prefs_loaded', () => false)
+  /** Bumped by resetPaneSizes: the layout keys its Nuxt UI panes on it, so they re-read their storage. */
+  const paneEpoch = useState<number>('promptool_pane_epoch', () => 0)
+  /** The sidebar's collapsed state, v-model of UDashboardSidebar (Nuxt UI persists it). */
+  const sidebarCollapsed = useState<boolean>('promptool_sidebar_collapsed', () => false)
 
   const flushPrefs = () => {
     if (import.meta.server) return
@@ -189,12 +188,17 @@ export function useLayoutPrefs() {
   }
   const hasPane = (id: PaneId) => prefs.value.panes.some(p => p.id === id)
 
-  /** Two neighbouring panes' sizes, from a divider drag or arrow key. */
-  const resizePair = (leftId: PaneId, leftSize: number, rightId: PaneId, rightSize: number) => {
-    setPanes(prefs.value.panes.map(p => (p.id === leftId ? { ...p, size: leftSize } : p.id === rightId ? { ...p, size: rightSize } : p)))
+  /**
+   * Every pane back to its Nuxt UI default-size: drop the cookies Nuxt UI keeps the sizes in,
+   * then remount the panes (paneEpoch) so they read their defaults again.
+   */
+  const resetPaneSizes = () => {
+    if (import.meta.server) return
+    for (const id of PANE_IDS) document.cookie = paneStorageName(id) + '=; Path=/; Max-Age=0; SameSite=Lax'
+    paneEpoch.value++
+    // After the remount, so the old sidebar does not write its size back while expanding.
+    if (sidebarCollapsed.value) void nextTick(() => { sidebarCollapsed.value = false })
   }
-
-  const resetPaneSizes = () => setPanes(resetSizes(prefs.value.panes))
 
   const movePane = (id: PaneId, dir: -1 | 1) => {
     const list = [...prefs.value.panes]
@@ -206,19 +210,17 @@ export function useLayoutPrefs() {
     setPanes(list)
   }
 
-  /** Close a pane; its width goes to the neighbours. The main sections pane stays. */
+  /** Close a pane (Nuxt UI keeps its size for when it comes back). The main sections pane stays. */
   const closePane = (id: PaneId) => {
     if (id === 'sections' || !hasPane(id)) return
-    setPanes(normalise(prefs.value.panes.filter(p => p.id !== id)))
+    setPanes(prefs.value.panes.filter(p => p.id !== id))
   }
 
-  /** Add a pane at the end (the sidebar at the start), at its default share. */
+  /** Add a pane at the end (the sidebar at the start). */
   const addPane = (id: PaneId, docId: string | null = null) => {
     if (hasPane(id)) return
-    const share = PANE_WEIGHT[id]
-    const rest = prefs.value.panes.map(p => ({ ...p, size: p.size * (1 - share) }))
-    const pane: PaneSpec = { id, kind: PANE_KIND[id], size: share, docId: id === 'sections-2' ? docId : null }
-    setPanes(id === 'sidebar' ? [pane, ...rest] : [...rest, pane])
+    const pane: PaneSpec = { id, kind: PANE_KIND[id], docId: id === 'sections-2' ? docId : null }
+    setPanes(id === 'sidebar' ? [pane, ...prefs.value.panes] : [...prefs.value.panes, pane])
   }
 
   const setPaneDoc = (id: PaneId, docId: string | null) => {
@@ -230,9 +232,11 @@ export function useLayoutPrefs() {
     loadPrefs,
     flushPrefs,
     resetLayoutPrefs,
+    loaded,
     panes,
+    paneEpoch,
+    sidebarCollapsed,
     hasPane,
-    resizePair,
     resetPaneSizes,
     movePane,
     closePane,

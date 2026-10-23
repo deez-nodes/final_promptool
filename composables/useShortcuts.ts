@@ -1,7 +1,9 @@
 /**
  * Keyboard first (DECIDED.md Layout "Keyboard first"): every action in the action bar and on
- * a section card has a key. SHORTCUTS is the one list; the `?` overlay and the button
- * tooltips read it. F3 (Vim) is bound by useVim().bindHotkey().
+ * a section card has a key. SHORTCUTS is the one list; the command palette (`?`, Nuxt UI's
+ * UCommandPalette in components/ActionPalette.vue) and the button tooltips read it, and the
+ * palette runs the same actions through useShortcutRunner(). F3 (Vim) is bound by
+ * useVim().bindHotkey().
  *
  * Bindings run from one window keydown listener and skip events an editor already handled
  * (defaultPrevented), so CodeMirror keeps its own keys. Letters match on `event.code`, so
@@ -39,7 +41,7 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'library', keys: 'Alt+S', label: 'Save section to the library', group: 'Section' },
   { id: 'vim', keys: 'F3', label: 'Vim keys on or off', group: 'App' },
   { id: 'theme', keys: 'Alt+T', label: 'Next theme', group: 'App' },
-  { id: 'help', keys: '?', label: 'This list (F1 anywhere)', group: 'App' }
+  { id: 'help', keys: '?', label: 'Command palette: every action and its key (F1 anywhere)', group: 'App' }
 ]
 
 export const keysOf = (id: ShortcutId): string => SHORTCUTS.find(s => s.id === id)?.keys ?? ''
@@ -90,13 +92,14 @@ export function useShortcuts() {
   return { open, shortcuts: SHORTCUTS }
 }
 
-/** Bind every shortcut once, from the action bar's setup. */
-export function bindShortcuts() {
+/** Run one shortcut's action; false when it does not apply (no focused section). Call in setup. */
+export function useShortcutRunner() {
   const store = useWorkspace()
   const { cycleTheme } = useTheme()
   const { open } = useShortcuts()
   const output = useOutputPanel()
   const { pasteFromFile } = useFilePaste()
+  const { toggle: toggleVim } = useVim()
 
   const sectionIds = () => store.current.value.sections.map(s => s.id)
   const focusedSection = () => {
@@ -125,7 +128,7 @@ export function bindShortcuts() {
       case 'add': document.getElementById('add-section-name')?.focus(); return true
       case 'next': step(1); return true
       case 'prev': step(-1); return true
-      case 'vim': return false
+      case 'vim': toggleVim(); return true
     }
     if (!section) return false
     switch (id) {
@@ -139,6 +142,13 @@ export function bindShortcuts() {
     }
     return false
   }
+
+  return run
+}
+
+/** Bind every shortcut once, from the action bar's setup. F3 stays with useVim().bindHotkey(). */
+export function bindShortcuts() {
+  const run = useShortcutRunner()
 
   const onKey = (e: KeyboardEvent) => {
     if (e.defaultPrevented || e.repeat) return
