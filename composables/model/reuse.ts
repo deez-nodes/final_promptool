@@ -61,11 +61,11 @@ export function reuseMessage(ws: Workspace, docId: string): Workspace {
 export function removeMessage(ws: Workspace, id: string): Workspace {
   if (ws.conversation.length <= 1 || !findDoc(ws.conversation, id)) return ws
   const conversation = ws.conversation.filter((d) => d.id !== id)
-  const currentId = ws.currentId === id ? conversation[conversation.length - 1].id : ws.currentId
+  const currentId = ws.currentId === id ? conversation[conversation.length - 1]?.id ?? ws.currentId : ws.currentId
   return { ...ws, conversation, currentId }
 }
 
-export const currentDoc = (ws: Workspace): Doc => findDoc(ws.conversation, ws.currentId) ?? ws.conversation[0]
+export const currentDoc = (ws: Workspace): Doc => findDoc(ws.conversation, ws.currentId) ?? ws.conversation[0]! // invariant: a conversation always holds at least one message
 
 // ---- into the current message ----------------------------------------------------------
 
@@ -84,7 +84,9 @@ export function duplicateSection(ws: Workspace, sectionId: string): { workspace:
   const doc = currentDoc(ws)
   const i = doc.sections.findIndex((s) => s.id === sectionId)
   if (i < 0) return null
-  return insertCopy(ws, doc.sections[i], i + 1)
+  const section = doc.sections[i]
+  if (!section) return null
+  return insertCopy(ws, section, i + 1)
 }
 
 /** Apply a Doc edit (see doc.ts) to the current message. */

@@ -28,8 +28,8 @@ const normalise = (body: string) => body.replace(/\r\n?/g, '\n')
 const trimBlankEdges = (lines: string[]): string[] => {
   let a = 0
   let b = lines.length
-  while (a < b && isBlank(lines[a])) a++
-  while (b > a && isBlank(lines[b - 1])) b--
+  while (a < b && isBlank(lines[a] ?? '')) a++
+  while (b > a && isBlank(lines[b - 1] ?? '')) b--
   return lines.slice(a, b)
 }
 
@@ -58,12 +58,12 @@ export function parseBody(body: string): ParsedBody {
     } else if (!fenced) {
       const item = ITEM.exec(raw)
       const quote = item ? null : QUOTE.exec(raw)
-      const indent = (item ?? quote)?.[1].length ?? -1
+      const indent = (item ?? quote)?.[1]?.length ?? -1
       if (indent >= 0 && (outer < 0 || indent <= outer)) {
         if (outer < 0) outer = indent
         current = item
-          ? { n: points.length + 1, lines: [item[2]], line: i, end: i + 1 }
-          : { n: points.length + 1, quote: quote![2], lines: [], line: i, end: i + 1 }
+          ? { n: points.length + 1, lines: [item[2] ?? ''], line: i, end: i + 1 }
+          : { n: points.length + 1, quote: quote![2] ?? '', lines: [], line: i, end: i + 1 } // quote! : indent >= 0 and no item means QUOTE matched
         points.push(current)
         return
       }
@@ -77,7 +77,7 @@ export function parseBody(body: string): ParsedBody {
   })
 
   for (const p of points) {
-    while (p.lines.length && isBlank(p.lines[p.lines.length - 1])) p.lines.pop()
+    while (p.lines.length && isBlank(p.lines[p.lines.length - 1] ?? '')) p.lines.pop()
   }
   return { lead: trimBlankEdges(lead), points }
 }

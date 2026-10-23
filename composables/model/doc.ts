@@ -39,7 +39,11 @@ export function moveSection(doc: Doc, id: string, dir: -1 | 1): Doc {
   const j = i + dir
   if (i < 0 || j < 0 || j >= doc.sections.length) return doc
   const sections = [...doc.sections]
-  ;[sections[i], sections[j]] = [sections[j], sections[i]]
+  const si = sections[i]
+  const sj = sections[j]
+  if (!si || !sj) return doc
+  sections[i] = sj
+  sections[j] = si
   return { ...doc, sections }
 }
 
@@ -49,6 +53,7 @@ export function mergeDown(doc: Doc, id: string): Doc {
   if (i < 0 || i + 1 >= doc.sections.length) return doc
   const a = doc.sections[i]
   const b = doc.sections[i + 1]
+  if (!a || !b) return doc
   const body = [a.body.replace(/\s+$/, ''), b.body.replace(/^\s*\n/, '')].filter((t) => t.trim()).join('\n')
   const sections = [...doc.sections]
   sections.splice(i, 2, { ...a, body })
@@ -126,7 +131,7 @@ export function parseWorkspace(raw: string): Workspace | null {
   const conversation = Array.isArray(v.conversation) ? v.conversation.map(readDoc).filter((d): d is Doc => d !== null) : []
   if (!conversation.length) conversation.push(makeDoc('prompt'))
   const id = str(v.currentId)
-  const currentId = conversation.some((d) => d.id === id) ? id : conversation[conversation.length - 1].id
+  const currentId = conversation.some((d) => d.id === id) ? id : conversation[conversation.length - 1]?.id ?? id
   const library = Array.isArray(v.library) ? v.library.map(readLibraryItem).filter((l): l is LibraryItem => l !== null) : []
   return { conversation, currentId, library }
 }

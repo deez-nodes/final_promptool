@@ -48,7 +48,7 @@ export function sectionLines(s: Section): string[] {
     } else if (corrections) {
       const first = p.lines.findIndex((l) => !isBlank(l))
       if (first < 0) continue
-      out.push(`${n} ${correctionLine(p.quote, p.lines[first])}`, ...p.lines.slice(first + 1))
+      out.push(`${n} ${correctionLine(p.quote, p.lines[first] ?? '')}`, ...p.lines.slice(first + 1))
     } else {
       out.push(`${n} > ${p.quote}`, ...p.lines)
     }
