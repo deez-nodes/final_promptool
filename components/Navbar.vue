@@ -96,6 +96,18 @@
 
     <!-- Right Controls: Token Metrics, Term Bank & IO -->
     <div class="flex items-center gap-2">
+      <!-- Save-state indicator -->
+      <span
+        id="save-state"
+        :data-state="saveState.status"
+        :title="saveTitle"
+        :class="['flex items-center gap-1.5 px-2 py-1 rounded border bg-surface2 font-mono text-[11px]', saveStateClass]"
+        aria-live="polite"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+        <span>{{ saveState.status }}</span>
+      </span>
+
       <!-- Token & Cost Counter -->
       <div
         class="hidden lg:flex items-center gap-2 px-2.5 py-1 bg-surface3 border border-border rounded font-mono text-[11px]"
@@ -142,6 +154,17 @@
 <script setup lang="ts">
 const promptStore = usePromptStore()
 const fileInput = ref<HTMLInputElement | null>(null)
+
+const saveState = computed(() => promptStore.persist.value)
+const saveStateClass = computed(() =>
+  saveState.value.status === 'failed' ? 'text-pink border-pink'
+    : saveState.value.status === 'saving' ? 'text-amber border-border' : 'text-green border-border'
+)
+const saveTitle = computed(() => {
+  const s = saveState.value
+  const last = s.lastSavedAt ? `Last saved ${new Date(s.lastSavedAt).toLocaleTimeString()}` : 'Not saved yet this session'
+  return s.status === 'failed' && s.error ? `${s.error} ${last}` : last
+})
 
 const confirmDeletePrompt = () => {
   if (!promptStore.currentPrompt.value) return

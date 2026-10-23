@@ -10,6 +10,7 @@ import type {
   SectionRole,
   ModelPricing
 } from '~/types'
+import type { EffectScope } from 'vue'
 
 const STORAGE_KEY = 'promptool_v1'
 const VERSION = 1
@@ -534,8 +535,103 @@ export function buildSeedStore(): PromptStoreData {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Persistence: serializer -> sink, one debounced writer, versioned migrations.
+// ---------------------------------------------------------------------------
+
+export const BACKUP_KEY_PREFIX = 'promptool:backup:'
+const SAVE_DEBOUNCE_MS = 400
+
+/** Where serialized workspace strings go. localStorage today; swappable (e.g. File System Access). */
+export interface StorageSink {
+  read(key: string): string | null
+  write(key: string, value: string): void
+  keys?(): string[]
+}
+
+export const localStorageSink: StorageSink = {
+  read: key => localStorage.getItem(key),
+  write: (key, value) => localStorage.setItem(key, value),
+  keys: () => Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i) || '').filter(Boolean)
+}
+
+let sink: StorageSink = localStorageSink
+export function setStorageSink(next: StorageSink) {
+  sink = next
+}
+
+/** The one serializer. Knows nothing about where the string ends up. */
+export function serializeStore(data: PromptStoreData, pretty = false): string {
+  return JSON.stringify(data, null, pretty ? 2 : undefined)
+}
+
+/**
+ * Migration table: MIGRATIONS[n] upgrades a version-n payload to version n+1.
+ * Payloads written before the `version` field existed are treated as version 0.
+ */
+const MIGRATIONS: Record<number, (data: any) => any> = {
+  0: data => ({ ...data, version: 1 })
+}
+
+/** Upgrade a parsed payload to the current VERSION, or throw with a human-readable reason. */
+export function migrateStore(input: unknown): PromptStoreData {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('not a JSON object')
+  let data: any = input
+  let from: number = data.version === undefined ? 0 : data.version
+  if (!Number.isInteger(from) || from < 0) throw new Error(`unrecognised version ${JSON.stringify(data.version)}`)
+  if (from > VERSION) throw new Error(`written by a newer build (version ${from}; this build reads up to ${VERSION})`)
+  while (from < VERSION) {
+    const step = MIGRATIONS[from]
+    if (!step) throw new Error(`no migration from version ${from}`)
+    data = step(data)
+    from += 1
+  }
+  if (!Array.isArray(data.prompts)) throw new Error('missing prompts array')
+  return {
+    version: VERSION,
+    prompts: data.prompts,
+    bank: Array.isArray(data.bank) ? data.bank : [],
+    activeVariables: data.activeVariables && typeof data.activeVariables === 'object' ? data.activeVariables : {}
+  }
+}
+
+function describeWriteError(e: unknown): string {
+  const err = e as { name?: string; code?: number; message?: string } | null
+  if (err?.name === 'QuotaExceededError' || err?.name === 'NS_ERROR_DOM_QUOTA_REACHED' || err?.code === 22) {
+    return 'Browser storage is full (QuotaExceededError).'
+  }
+  return `Browser storage refused the write (${err?.name || err?.message || String(e)}).`
+}
+
+export type SaveStatus = 'saved' | 'saving' | 'failed'
+
+export interface PersistState {
+  status: SaveStatus
+  lastSavedAt: number | null
+  /** Why the last write (or the initial read) failed. */
+  error: string | null
+  /** Set when unreadable saved data was copied aside on load. */
+  backupKey: string | null
+  backupReason: string | null
+  /** True when writing would overwrite saved data we could neither read nor back up. */
+  writesBlocked: boolean
+}
+
+// Client-only writer state (module scope: one writer per page).
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+let dirty = false
+let watchScope: EffectScope | null = null
+
 export function usePromptStore() {
   const store = useState<PromptStoreData>('promptool_store', () => buildSeedStore())
+  const persist = useState<PersistState>('promptool_persist', () => ({
+    status: 'saved',
+    lastSavedAt: null,
+    error: null,
+    backupKey: null,
+    backupReason: null,
+    writesBlocked: false
+  }))
   const currentPromptId = useState<string | null>('promptool_current_id', () => null)
   const isInitialized = useState<boolean>('promptool_initialized', () => false)
 
@@ -553,45 +649,108 @@ export function usePromptStore() {
   // Term bank modal
   const showBankModal = useState<boolean>('promptool_bank_modal', () => false)
 
-  // Init store from localStorage on client
+  // The single write path: serialize the store and hand it to the sink.
+  const flushSave = () => {
+    if (process.server) return
+    if (saveTimer) {
+      clearTimeout(saveTimer)
+      saveTimer = null
+    }
+    if (!dirty || persist.value.writesBlocked) return
+    try {
+      sink.write(STORAGE_KEY, serializeStore(store.value))
+      dirty = false
+      persist.value.status = 'saved'
+      persist.value.lastSavedAt = Date.now()
+      persist.value.error = null
+    } catch (e) {
+      // Stay dirty: the next change or flush retries the write.
+      persist.value.status = 'failed'
+      persist.value.error = describeWriteError(e)
+    }
+  }
+
+  // Mark the workspace dirty and write it ~400ms after the last change.
+  const saveToStorage = () => {
+    if (process.server) return
+    dirty = true
+    if (persist.value.writesBlocked) return
+    // A failure stays visible until a write actually succeeds.
+    if (persist.value.status !== 'failed') persist.value.status = 'saving'
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(flushSave, SAVE_DEBOUNCE_MS)
+  }
+
+  // Copy unreadable saved data aside, reusing an identical existing backup.
+  const backupRaw = (raw: string): string => {
+    const existing = sink.keys?.().find(k => k.startsWith(BACKUP_KEY_PREFIX) && sink.read(k) === raw)
+    if (existing) return existing
+    const key = `${BACKUP_KEY_PREFIX}${new Date().toISOString()}`
+    sink.write(key, raw)
+    return key
+  }
+
+  // Init store from the sink on client. Never writes the seed over existing data.
   const initStore = () => {
     if (process.server || isInitialized.value) return
     isInitialized.value = true
 
+    let raw: string | null = null
+    let readable = true
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
+      raw = sink.read(STORAGE_KEY)
+    } catch (e) {
+      readable = false
+      store.value = buildSeedStore()
+      persist.value.status = 'failed'
+      persist.value.writesBlocked = true
+      persist.value.error = `Browser storage is unavailable (${(e as Error)?.name || 'read failed'}). Nothing will be saved this session.`
+    }
+
+    if (readable && raw === null) {
+      // First run: nothing to protect.
+      store.value = buildSeedStore()
+      saveToStorage()
+      flushSave()
+    } else if (readable && raw !== null) {
+      try {
         const parsed = JSON.parse(raw)
-        if (parsed && parsed.version === VERSION && Array.isArray(parsed.prompts)) {
-          store.value = {
-            version: VERSION,
-            prompts: parsed.prompts,
-            bank: Array.isArray(parsed.bank) ? parsed.bank : [],
-            activeVariables: parsed.activeVariables || {}
+        const fromVersion = parsed?.version
+        store.value = migrateStore(parsed)
+        if (fromVersion !== VERSION) {
+          // Keep the pre-migration original (best effort), then persist the migrated shape.
+          try {
+            backupRaw(raw)
+          } catch {
+            /* migration succeeded; the migrated data is still written below */
           }
-        } else {
-          store.value = buildSeedStore()
           saveToStorage()
         }
-      } else {
+      } catch (e) {
+        const reason = e instanceof SyntaxError ? 'not valid JSON' : (e as Error)?.message || 'unreadable'
         store.value = buildSeedStore()
-        saveToStorage()
+        try {
+          persist.value.backupKey = backupRaw(raw)
+          persist.value.backupReason = reason
+        } catch (we) {
+          // Could not copy it aside: never overwrite the original.
+          persist.value.writesBlocked = true
+          persist.value.status = 'failed'
+          persist.value.error =
+            `Saved workspace could not be loaded (${reason}) and could not be backed up: ${describeWriteError(we)} ` +
+            'Saving is paused so the original data stays untouched.'
+        }
       }
-    } catch {
-      store.value = buildSeedStore()
     }
 
     if (store.value.prompts.length > 0 && !currentPromptId.value) {
       currentPromptId.value = store.value.prompts[0].id
     }
-  }
 
-  const saveToStorage = () => {
-    if (process.server) return
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(store.value))
-    } catch (e) {
-      console.warn('Failed to save to localStorage', e)
+    // Any change to the workspace, through an action or a direct mutation, schedules a write.
+    if (!watchScope) {
+      watchScope = effectScope(true)
+      watchScope.run(() => watch(store, () => saveToStorage(), { deep: true }))
     }
   }
 
@@ -842,7 +1001,18 @@ export function usePromptStore() {
   }
 
   const exportStoreJson = () => {
-    return JSON.stringify(store.value, null, 2)
+    return serializeStore(store.value, true)
+  }
+
+  // Download the in-memory workspace; works even when storage writes are failing.
+  const downloadWorkspaceJson = () => {
+    const blob = new Blob([exportStoreJson()], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `promptor_workspace_${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   const importStoreJson = (jsonString: string): { ok: boolean; error?: string } => {
@@ -857,19 +1027,15 @@ export function usePromptStore() {
       if (!Array.isArray(parsed.bank)) {
         return { ok: false, error: 'Missing bank array' }
       }
-      store.value = {
-        version: VERSION,
-        prompts: parsed.prompts,
-        bank: parsed.bank,
-        activeVariables: parsed.activeVariables || {}
-      }
+      store.value = migrateStore(parsed)
       if (store.value.prompts.length > 0) {
         currentPromptId.value = store.value.prompts[0].id
       }
       saveToStorage()
+      flushSave()
       return { ok: true }
-    } catch {
-      return { ok: false, error: 'Malformed JSON payload' }
+    } catch (e) {
+      return { ok: false, error: e instanceof SyntaxError ? 'Malformed JSON payload' : (e as Error)?.message || 'Import failed' }
     }
   }
 
@@ -880,6 +1046,9 @@ export function usePromptStore() {
     isInitialized,
     initStore,
     saveToStorage,
+    flushSave,
+    persist,
+    downloadWorkspaceJson,
     promptQuery,
     promptKindFilter,
     sectionQuery,
