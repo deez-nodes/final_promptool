@@ -1,0 +1,200 @@
+/*
+ * KanbanCard: level-3 tokens over assets/css/tokens.css. The card's [data-type] sets --hue
+ * (tokens.css); --card-hue is declared here so it resolves on the card, not on :root.
+ * Cards are coloured by meaning: a hue bar and a light wash of the type's hue.
+ */
+.card {
+  --card-hue: var(--hue, var(--t-line-2));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--c-card-line);
+  border-left: 4px solid var(--card-hue);
+  border-radius: var(--radius-1);
+  background: color-mix(in oklch, var(--t-bg) var(--t-hue-mix), var(--card-hue));
+  color: var(--c-app-fg);
+  cursor: grab;
+}
+.card:focus-visible,
+.editing {
+  border-color: var(--card-hue);
+  outline: 2px solid var(--c-focus-ring);
+  outline-offset: 1px;
+}
+.card:active {
+  cursor: grabbing;
+}
+
+/* An edit without a type: neutral, no hue. */
+.untyped {
+  --card-hue: var(--t-line-2);
+  background: var(--c-card-bg);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.meaning {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--t-fg-2);
+  white-space: nowrap;
+}
+
+.source {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--c-count-fg);
+  white-space: nowrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.tool {
+  padding: 0 var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  background: transparent;
+  color: var(--t-fg-2);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+.tool:hover:not(:disabled),
+.tool:focus-visible {
+  border-color: var(--c-control-line);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+}
+.tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.danger:hover:not(:disabled) {
+  color: var(--t-danger);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--fs-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.textField {
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font: inherit;
+  font-size: var(--fs-body);
+  resize: vertical;
+}
+
+.typePick,
+.done {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.box {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: var(--c-action-bg);
+  cursor: pointer;
+}
+
+.checkText {
+  flex: 1;
+  min-width: 0;
+  padding: 0 var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  background: transparent;
+  color: var(--c-app-fg);
+  font-size: var(--fs-small);
+}
+.checkText:hover,
+.checkText:focus {
+  border-color: var(--c-control-line);
+  background: var(--c-control-bg);
+}
+.checked .checkText {
+  color: var(--t-fg-3);
+  text-decoration: line-through;
+}
+
+.checkRemove {
+  padding: 0 var(--space-1);
+  border: none;
+  background: transparent;
+  color: var(--t-fg-3);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+.checkRemove:hover,
+.checkRemove:focus-visible {
+  color: var(--t-danger);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.addCheck {
+  flex: 1;
+  min-width: 0;
+  padding: 0 var(--space-1);
+  border: 1px dashed var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: transparent;
+  color: var(--c-app-fg);
+  font-size: var(--fs-small);
+}
+.addCheck::placeholder {
+  color: var(--t-fg-3);
+}
+
+.progress {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--c-count-fg);
+}

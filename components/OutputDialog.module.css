@@ -1,0 +1,86 @@
+.dialog {
+  width: min(52rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--c-card-line);
+  border-radius: var(--radius-2);
+  background: var(--c-card-bg);
+  color: var(--c-app-fg);
+  white-space: normal;
+}
+.dialog::backdrop {
+  background: var(--c-overlay);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  max-height: calc(100vh - 4rem);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: var(--t-h2-weight);
+}
+
+.sub {
+  font-size: var(--fs-small);
+  font-weight: 400;
+  color: var(--t-fg-2);
+}
+
+.close {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+/* Tags: monospace (DECIDED.md "Monospace only for tags, counts and hotkeys"). */
+.xml {
+  flex: 1;
+  min-height: 6rem;
+  margin: 0;
+  padding: var(--space-3);
+  overflow: auto;
+  border: 1px solid var(--c-pane-line);
+  border-radius: var(--radius-1);
+  background: var(--c-pane-bg);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.empty {
+  margin: 0;
+  color: var(--t-fg-2);
+}
+
+.help {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--t-fg-3);
+}
+
+.kbd {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--c-kbd-line);
+  border-radius: var(--radius-1);
+  background: var(--c-kbd-bg);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+}

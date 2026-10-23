@@ -7,6 +7,9 @@
 
     <ActionBar />
 
+    <!-- Secondary menu: Show output, Paste from file, panes. Not part of the fixed bar. -->
+    <MoreMenu />
+
     <div :class="$style.spacer" />
 
     <!-- Save state -->

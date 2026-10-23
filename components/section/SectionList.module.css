@@ -118,3 +118,13 @@
   font-size: var(--fs-small);
   font-weight: 400;
 }
+
+.pick {
+  margin-left: auto;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+}

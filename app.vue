@@ -29,6 +29,7 @@ useRouter().beforeEach(() => {
 onMounted(() => {
   loadTheme()
   workspace.initWorkspace()
+  layoutPrefs.loadPrefs()
   window.addEventListener('blur', flushAll)
   window.addEventListener('pagehide', flushAll)
   document.addEventListener('visibilitychange', onVisibility)

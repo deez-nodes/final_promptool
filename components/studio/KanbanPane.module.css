@@ -1,34 +1,79 @@
-.pane {
+.board {
   display: flex;
   flex-direction: column;
   min-height: 0;
   flex: 1;
 }
 
-.head {
+.toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--c-pane-line);
-  background: var(--c-pane-bg);
 }
 
-.title {
+.summary {
+  flex: 1;
+  min-width: 10rem;
   font-size: var(--fs-small);
-  font-weight: 600;
-  color: var(--c-pane-head-fg);
+  color: var(--t-fg-2);
 }
 
+.count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  color: var(--c-count-fg);
+}
+
+.addColumn {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.input {
+  min-width: 0;
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+}
+.input::placeholder {
+  color: var(--t-fg-3);
+}
+
+.btn {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--c-control-hover-bg);
+}
+
+/* Columns sit side by side and scroll sideways when the pane is narrow. */
 .columns {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(12rem, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
   overflow: auto;
+  align-items: start;
 }
 
+/* Bordered columns. */
 .column {
   display: flex;
   flex-direction: column;
@@ -37,15 +82,73 @@
   border-radius: var(--radius-2);
   background: var(--c-column-bg);
 }
+.dropping {
+  border-style: dashed;
+  border-color: var(--c-control-fg);
+  background: var(--c-control-hover-bg);
+}
 
-.columnTitle {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--fs-small);
-  font-weight: var(--t-h3-weight);
+.columnHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   border-bottom: 1px solid var(--c-column-line);
 }
 
-.columnBody {
+.columnTitle {
   flex: 1;
+  min-width: 0;
+  padding: var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  background: transparent;
+  color: var(--c-app-fg);
+  font-size: var(--fs-body);
+  font-weight: var(--t-h3-weight);
+}
+.columnTitle:hover,
+.columnTitle:focus {
+  border-color: var(--c-control-line);
+  background: var(--c-control-bg);
+}
+
+.tool {
+  padding: 0 var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  background: transparent;
+  color: var(--t-fg-2);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+.tool:hover:not(:disabled) {
+  border-color: var(--c-control-line);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+}
+.tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.danger:hover:not(:disabled) {
+  color: var(--t-danger);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  min-height: 3rem;
+}
+
+.slot {
+  margin: 0;
+}
+
+.addCard {
+  padding: 0 var(--space-2) var(--space-2);
 }

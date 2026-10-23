@@ -17,7 +17,7 @@ export interface Shortcut {
 }
 
 export type ShortcutId =
-  | 'copy' | 'newPrompt' | 'newReply' | 'undo' | 'vim' | 'theme' | 'help'
+  | 'copy' | 'newPrompt' | 'newReply' | 'undo' | 'vim' | 'theme' | 'help' | 'output' | 'pasteFile'
   | 'add' | 'next' | 'prev' | 'up' | 'down' | 'merge' | 'remove' | 'fold' | 'include' | 'library'
 
 export const SHORTCUTS: readonly Shortcut[] = [
@@ -25,6 +25,8 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'newPrompt', keys: 'Alt+N', label: 'New prompt', group: 'Message' },
   { id: 'newReply', keys: 'Alt+R', label: 'New reply', group: 'Message' },
   { id: 'undo', keys: 'Alt+Z', label: 'Undo the last removal or merge (Ctrl+Z outside a text field)', group: 'Message' },
+  { id: 'output', keys: 'Alt+O', label: 'Show output: the message as XML, read-only (More menu)', group: 'Message' },
+  { id: 'pasteFile', keys: 'Alt+P', label: 'Paste from file: its lines become points of the focused section (More menu)', group: 'Section' },
   { id: 'add', keys: 'Alt+A', label: 'Add a section: type a name, then Enter or a meaning chip', group: 'Section' },
   { id: 'next', keys: 'Alt+J', label: 'Next section', group: 'Section' },
   { id: 'prev', keys: 'Alt+K', label: 'Previous section', group: 'Section' },
@@ -53,7 +55,9 @@ const ALT_CODES: Partial<Record<string, ShortcutId>> = {
   KeyM: 'merge',
   Period: 'fold',
   KeyI: 'include',
-  KeyS: 'library'
+  KeyS: 'library',
+  KeyO: 'output',
+  KeyP: 'pasteFile'
 }
 
 const isTextEntry = (el: EventTarget | null): boolean => {
@@ -78,6 +82,9 @@ export function matchShortcut(e: KeyboardEvent): ShortcutId | null {
   return null
 }
 
+/** Whether the read-only output panel (Show output) is open. */
+export const useOutputPanel = () => useState<boolean>('promptor_output_open', () => false)
+
 export function useShortcuts() {
   const open = useState<boolean>('promptor_keys_open', () => false)
   return { open, shortcuts: SHORTCUTS }
@@ -88,6 +95,8 @@ export function bindShortcuts() {
   const store = useWorkspace()
   const { cycleTheme } = useTheme()
   const { open } = useShortcuts()
+  const output = useOutputPanel()
+  const { pasteFromFile } = useFilePaste()
 
   const sectionIds = () => store.current.value.sections.map(s => s.id)
   const focusedSection = () => {
@@ -99,7 +108,7 @@ export function bindShortcuts() {
     if (!ids.length) return
     const i = ids.indexOf(focusedSection() ?? '')
     const j = i < 0 ? (dir > 0 ? 0 : ids.length - 1) : Math.max(0, Math.min(ids.length - 1, i + dir))
-    store.focusRequest.value = ids[j]
+    store.focusRequest.value = ids[j] ?? null
   }
 
   const run = (id: ShortcutId) => {
@@ -111,6 +120,8 @@ export function bindShortcuts() {
       case 'undo': store.undo(); return true
       case 'theme': cycleTheme(); return true
       case 'help': open.value = !open.value; return true
+      case 'output': output.value = !output.value; return true
+      case 'pasteFile': void pasteFromFile(); return true
       case 'add': document.getElementById('add-section-name')?.focus(); return true
       case 'next': step(1); return true
       case 'prev': step(-1); return true

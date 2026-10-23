@@ -1,0 +1,27 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--c-control-hover-bg);
+}
+
+.menu {
+  border: 1px solid var(--c-control-line);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+}
+
+.item {
+  font-size: var(--fs-small);
+}

@@ -1,8 +1,21 @@
 <template>
-  <div id="sections" :class="$style.list" :data-kind="doc.kind">
+  <p v-if="!doc" id="sections-2" :class="$style.empty">
+    Only one message so far. Start another (New prompt or New reply) and it shows here beside the current one.
+  </p>
+  <div v-else :id="secondary ? 'sections-2' : 'sections'" :class="$style.list" :data-kind="doc.kind">
     <header :class="$style.docHead">
       <h1 :class="$style.docTitle">{{ docTitle }}</h1>
       <span :class="$style.meta">{{ docMeta }}</span>
+      <!-- A second sections pane shows another message; pick which. -->
+      <select
+        v-if="secondary"
+        :value="doc.id"
+        :class="$style.pick"
+        aria-label="Message shown in this pane"
+        @change="pick"
+      >
+        <option v-for="o in others" :key="o.id" :value="o.id">{{ o.label }}</option>
+      </select>
     </header>
 
     <SectionCard
@@ -13,10 +26,10 @@
       :total="doc.sections.length"
     />
 
-    <p v-if="!doc.sections.length" :class="$style.empty">No sections. Add one below.</p>
+    <p v-if="!doc.sections.length" :class="$style.empty">No sections.{{ secondary ? '' : ' Add one below.' }}</p>
 
     <!-- Add a section by chip or by typed name; the chip sets its type and colour (DZ-51, DZ-57). -->
-    <div :class="$style.add" role="group" aria-label="Add a section">
+    <div v-if="!secondary" :class="$style.add" role="group" aria-label="Add a section">
       <label :class="$style.nameRow">
         <span :class="$style.label">Add section <kbd :class="$style.kbd">{{ addKeys }}</kbd></span>
         <input
@@ -55,24 +68,51 @@
 /**
  * The current message's sections as cards, and the add control (DECIDED.md Layout L23).
  * The six chips are the six types (meanings), each in its _MINTY hue.
+ *
+ * `secondary`: a second sections pane (DZ-47, panes are addable) showing another message,
+ * never the current one (so no card is on screen twice). Its cards edit their own message.
  */
-import { TYPES, TYPE_MEANING, type SectionType } from '~/composables/model'
+import { TYPES, TYPE_MEANING, type Doc, type SectionType } from '~/composables/model'
+
+const props = withDefaults(defineProps<{ secondary?: boolean; docId?: string | null }>(), {
+  secondary: false,
+  docId: null
+})
 
 const store = useWorkspace()
-const doc = computed(() => store.current.value)
+const { setPaneDoc } = useLayoutPrefs()
+const conversation = computed(() => store.ws.value.conversation)
+const kindLabel = (d: Doc) => (d.kind === 'reply' ? 'Reply' : 'Prompt')
+
+/** Messages a second pane can show: every one but the current. */
+const others = computed(() =>
+  conversation.value
+    .map((d, i) => ({ id: d.id, label: kindLabel(d) + ' ' + (i + 1), doc: d }))
+    .filter(o => o.id !== store.ws.value.currentId)
+)
+
+const doc = computed<Doc | null>(() => {
+  if (!props.secondary) return store.current.value
+  const list = others.value
+  return list.find(o => o.id === props.docId)?.doc ?? list[list.length - 1]?.doc ?? null
+})
+
+const pick = (e: Event) => setPaneDoc('sections-2', (e.target as HTMLSelectElement).value || null)
+
 const name = ref('')
 const addKeys = keysOf('add')
 
-const position = computed(() => store.ws.value.conversation.findIndex(d => d.id === doc.value.id) + 1)
-const docTitle = computed(() => (doc.value.kind === 'reply' ? 'Reply' : 'Prompt') + ' ' + position.value)
+const position = computed(() => (doc.value ? conversation.value.findIndex(d => d.id === doc.value!.id) + 1 : 0))
+const docTitle = computed(() => (doc.value ? kindLabel(doc.value) + ' ' + position.value : ''))
 const docMeta = computed(() => {
-  const n = store.ws.value.conversation.length
-  return 'message ' + position.value + ' of ' + n + ' · ' + doc.value.sections.length + ' sections'
+  const n = conversation.value.length
+  const sections = doc.value?.sections.length ?? 0
+  return 'message ' + position.value + ' of ' + n + ' · ' + sections + ' sections' + (props.secondary ? ' · not the current message' : '')
 })
 
 const chips = computed(() =>
   TYPES.map((type) => {
-    const title = chipTitle(type, doc.value.kind)
+    const title = chipTitle(type, doc.value?.kind ?? 'prompt')
     return {
       type,
       title,

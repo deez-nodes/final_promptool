@@ -10,6 +10,10 @@
  * unreadable data copied aside under `promptool:backup:<ISO>` before anything is written,
  * and a failed-write state the banner and `#save-state` read. Layout preferences live
  * separately in useLayoutPrefs.ts. Local only: nothing here leaves the browser storage.
+ *
+ * The edits board (DECIDED.md Layout "Right pane: a Trello-style Kanban …") is kept beside
+ * the workspace and saved in the same payload (`board`), so it persists with the workspace.
+ * Every reply's Proposed Edits points land on it as cards (model/board.ts syncBoard).
  */
 import type { EffectScope } from 'vue'
 import {
@@ -21,13 +25,17 @@ import {
   findDoc,
   findSection,
   insertCopy,
+  isBlank,
   isSectionType,
+  ITEM,
   makeSection,
   makeWorkspace,
   mergeDown,
   moveSection,
   newMessage,
+  parseBody,
   parseWorkspace,
+  QUOTE,
   remember,
   removeFromLibrary,
   removeMessage,
@@ -36,6 +44,7 @@ import {
   saveToLibrary,
   serializeWorkspace,
   SKELETON,
+  splitPaste,
   TYPE_DEFAULT_TITLE,
   undo as undoStep,
   undoLabel,
@@ -48,6 +57,30 @@ import {
   type SectionType,
   type Workspace
 } from './model'
+import {
+  addCard,
+  addCheck,
+  addColumn,
+  makeBoard,
+  moveCard,
+  readBoard,
+  removeCard,
+  removeCheck,
+  removeColumn,
+  renameCheck,
+  renameColumn,
+  restoreCard,
+  restoreCheck,
+  restoreColumn,
+  stepCard,
+  syncBoard,
+  toggleCheck,
+  updateCard,
+  type Board,
+  type BoardColumn,
+  type CheckItem,
+  type EditCard
+} from './model/board'
 
 export const WORKSPACE_KEY = 'promptor:workspace:v1'
 export const BACKUP_KEY_PREFIX = 'promptool:backup:'
@@ -150,6 +183,9 @@ type UndoRecord =
   | { kind: 'merge'; docId: string; index: number; upper: Section; lower: Section }
   | { kind: 'message'; index: number; doc: Doc }
   | { kind: 'library'; index: number; item: LibraryItem }
+  | { kind: 'card'; index: number; card: EditCard }
+  | { kind: 'column'; index: number; column: BoardColumn; cards: { index: number; card: EditCard }[] }
+  | { kind: 'check'; cardId: string; index: number; item: CheckItem }
 
 const insertAt = <T>(list: readonly T[], index: number, item: T): T[] => {
   const copy = [...list]
@@ -179,6 +215,17 @@ function restore(ws: Workspace, r: UndoRecord): Workspace {
     case 'library':
       if (ws.library.some(l => l.id === r.item.id)) return ws
       return { ...ws, library: insertAt(ws.library, r.index, r.item) }
+    default:
+      return ws
+  }
+}
+
+function restoreOnBoard(board: Board, r: UndoRecord): Board {
+  switch (r.kind) {
+    case 'card': return restoreCard(board, r.index, r.card)
+    case 'column': return restoreColumn(board, r.index, r.column, r.cards)
+    case 'check': return restoreCheck(board, r.cardId, r.index, r.item)
+    default: return board
   }
 }
 
@@ -193,6 +240,8 @@ const sink = localStorageSink
 
 export function useWorkspace() {
   const ws = useState<Workspace>('promptor_workspace', () => makeWorkspace())
+  /** The edits board, saved with the workspace. */
+  const board = useState<Board>('promptor_board', () => makeBoard())
   const history = useState<History<UndoRecord>>('promptor_history', () => createHistory<UndoRecord>(50))
   const persist = useState<PersistState>('promptor_persist', () => ({
     status: 'saved',
@@ -223,7 +272,9 @@ export function useWorkspace() {
     }
     if (!dirty || persist.value.writesBlocked) return
     try {
-      sink.write(WORKSPACE_KEY, serializeWorkspace(ws.value))
+      const payload = JSON.parse(serializeWorkspace(ws.value)) as Record<string, unknown>
+      payload.board = board.value
+      sink.write(WORKSPACE_KEY, JSON.stringify(payload))
       dirty = false
       persist.value.status = 'saved'
       persist.value.lastSavedAt = Date.now()
@@ -281,6 +332,7 @@ export function useWorkspace() {
         const parsed = JSON.parse(raw)
         const fromVersion = parsed?.v
         ws.value = migrateWorkspace(parsed)
+        board.value = readBoard(parsed?.board)
         if (fromVersion !== WORKSPACE_VERSION) {
           // Keep the pre-migration original (best effort), then persist the migrated shape.
           try {
@@ -307,10 +359,21 @@ export function useWorkspace() {
       }
     }
 
-    // Any change to the workspace schedules a write.
+    // Proposed Edits points from replies land on the board as cards; re-reading never duplicates.
+    const sync = () => {
+      const next = syncBoard(board.value, ws.value.conversation)
+      if (next !== board.value) board.value = next
+    }
+    sync()
+
+    // Any change to the workspace or the board schedules a write.
     if (!watchScope) {
       watchScope = effectScope(true)
-      watchScope.run(() => watch(ws, scheduleSave, { deep: true }))
+      watchScope.run(() => {
+        watch(() => ws.value.conversation, sync, { deep: true })
+        watch(ws, scheduleSave, { deep: true })
+        watch(board, scheduleSave, { deep: true })
+      })
     }
   }
 
@@ -333,7 +396,20 @@ export function useWorkspace() {
     ws.value = editCurrent(ws.value, fn)
   }
 
-  const indexOf = (id: string) => current.value.sections.findIndex(s => s.id === id)
+  /**
+   * The message a section belongs to. Section ids are unique across the conversation, so a
+   * card in a second sections pane (another message) edits its own message, not the current one.
+   */
+  const ownerOf = (sectionId: string): Doc =>
+    ws.value.conversation.find(d => d.sections.some(s => s.id === sectionId)) ?? current.value
+
+  /** Apply an edit to the message that holds the section. */
+  const editOwner = (sectionId: string, fn: (doc: Doc) => Doc): Workspace => {
+    const doc = ownerOf(sectionId)
+    return { ...ws.value, conversation: replaceDoc(ws.value.conversation, fn(doc)) }
+  }
+
+  const findOwned = (id: string): Section | undefined => ownerOf(id).sections.find(s => s.id === id)
 
   // ── messages ─────────────────────────────────────────────────────────────
 
@@ -356,7 +432,9 @@ export function useWorkspace() {
 
   // ── sections of the current message ─────────────────────────────────────
 
-  const patch = (id: string, fields: Partial<Omit<Section, 'id'>>) => edit(doc => updateSection(doc, id, fields))
+  const patch = (id: string, fields: Partial<Omit<Section, 'id'>>) => {
+    ws.value = editOwner(id, doc => updateSection(doc, id, fields))
+  }
 
   const add = (section: Section) => {
     edit(doc => addSection(doc, section))
@@ -382,43 +460,72 @@ export function useWorkspace() {
   }
 
   const remove = (id: string) => {
-    const index = indexOf(id)
-    const section = current.value.sections[index]
+    const owner = ownerOf(id)
+    const index = owner.sections.findIndex(s => s.id === id)
+    const section = owner.sections[index]
     if (!section) return
-    const docId = current.value.id
-    const neighbour = current.value.sections[index + 1] ?? current.value.sections[index - 1]
+    const docId = owner.id
+    const neighbour = owner.sections[index + 1] ?? owner.sections[index - 1]
     destroy('Removed ' + (section.title || 'section'), { kind: 'section', docId, index, section },
-      editCurrent(ws.value, doc => removeSection(doc, id)))
+      editOwner(id, doc => removeSection(doc, id)))
     if (focusedId.value === id) focusRequest.value = neighbour?.id ?? null
   }
 
-  const move = (id: string, dir: -1 | 1) => edit(doc => moveSection(doc, id, dir))
+  const move = (id: string, dir: -1 | 1) => {
+    ws.value = editOwner(id, doc => moveSection(doc, id, dir))
+  }
 
   const merge = (id: string) => {
-    const index = indexOf(id)
-    const upper = current.value.sections[index]
-    const lower = current.value.sections[index + 1]
+    const owner = ownerOf(id)
+    const index = owner.sections.findIndex(s => s.id === id)
+    const upper = owner.sections[index]
+    const lower = owner.sections[index + 1]
     if (!upper || !lower) return
     destroy('Merged ' + (lower.title || 'section') + ' into ' + (upper.title || 'section'),
-      { kind: 'merge', docId: current.value.id, index, upper, lower },
-      editCurrent(ws.value, doc => mergeDown(doc, id)))
+      { kind: 'merge', docId: owner.id, index, upper, lower },
+      editOwner(id, doc => mergeDown(doc, id)))
     focusRequest.value = id
   }
 
   const toggleFold = (id: string) => {
-    const s = current.value.sections.find(x => x.id === id)
+    const s = findOwned(id)
     if (s) patch(id, { folded: !s.folded })
   }
 
   const toggleInclude = (id: string) => {
-    const s = current.value.sections.find(x => x.id === id)
+    const s = findOwned(id)
     if (s) patch(id, { included: !s.included })
+  }
+
+  /**
+   * File uploads from the side: text read from a file goes in as points (DZ-54: one point per
+   * line) at the end of the given section, or of a new untyped section when there is none.
+   */
+  const pastePoints = (text: string, sectionId: string | null, fallbackTitle = 'From file'): boolean => {
+    const lines = text.replace(/\r\n?/g, '\n').split('\n').filter(l => !isBlank(l))
+    if (!lines.length) {
+      say('Nothing to paste: the file is empty')
+      return false
+    }
+    const only = lines.length === 1 ? lines[0] ?? '' : null
+    const block = splitPaste(text) ?? (only !== null && !ITEM.test(only) && !QUOTE.test(only) ? '- ' + only.trim() : lines.join('\n'))
+    const target = sectionId ? findOwned(sectionId) : undefined
+    if (target) {
+      const base = target.body.replace(/\s+$/, '')
+      patch(target.id, { body: base ? base + '\n' + block : block, folded: false })
+      focusRequest.value = target.id
+    } else {
+      add(makeSection(fallbackTitle.trim() || 'From file', null, block))
+    }
+    const n = parseBody(block).points.length
+    say('Pasted ' + n + ' point' + (n === 1 ? '' : 's') + ' from the file')
+    return true
   }
 
   // ── reuse: library and other messages (independent copies) ───────────────
 
   const keepInLibrary = (id: string) => {
-    const s = current.value.sections.find(x => x.id === id)
+    const s = findOwned(id)
     if (!s) return
     ws.value = { ...ws.value, library: saveToLibrary(ws.value.library, s) }
     say('Saved ' + (s.title || 'section') + ' to the library')
@@ -463,9 +570,69 @@ export function useWorkspace() {
     }
     history.value = step.history
     ws.value = restore(ws.value, step.state)
+    board.value = restoreOnBoard(board.value, step.state)
     say('Undone: ' + step.label)
     if (step.state.kind === 'section') focusRequest.value = step.state.section.id
     if (step.state.kind === 'merge') focusRequest.value = step.state.upper.id
+  }
+
+  // ── the edits board ───────────────────────────────────────────────────────
+
+  const setBoard = (next: Board) => {
+    board.value = next
+  }
+
+  const cardLabel = (c: EditCard) => {
+    const line = c.text.split('\n').find(l => l.trim())?.trim() || 'edit'
+    return line.length > 40 ? line.slice(0, 39) + '…' : line
+  }
+
+  const boardOps = {
+    addCard: (columnId: string, text: string, type: SectionType | null = null) => {
+      const r = addCard(board.value, columnId, text, type)
+      setBoard(r.board)
+      return r.card
+    },
+    updateCard: (id: string, fields: Partial<Pick<EditCard, 'text' | 'type'>>) => setBoard(updateCard(board.value, id, fields)),
+    moveCard: (id: string, columnId: string, beforeId: string | null = null) => setBoard(moveCard(board.value, id, columnId, beforeId)),
+    stepCard: (id: string, dx: -1 | 0 | 1, dy: -1 | 0 | 1) => setBoard(stepCard(board.value, id, dx, dy)),
+    removeCard: (id: string) => {
+      const r = removeCard(board.value, id)
+      if (!r) return
+      history.value = remember(history.value, 'Removed edit ' + cardLabel(r.card), { kind: 'card', index: r.index, card: r.card } as UndoRecord)
+      board.value = r.board
+      say('Removed edit ' + cardLabel(r.card) + ': Alt+Z undoes it')
+    },
+    addCheck: (cardId: string, text: string) => {
+      if (text.trim()) setBoard(addCheck(board.value, cardId, text.trim()))
+    },
+    toggleCheck: (cardId: string, checkId: string) => setBoard(toggleCheck(board.value, cardId, checkId)),
+    renameCheck: (cardId: string, checkId: string, text: string) => setBoard(renameCheck(board.value, cardId, checkId, text)),
+    removeCheck: (cardId: string, checkId: string) => {
+      const r = removeCheck(board.value, cardId, checkId)
+      if (!r) return
+      const label = 'Removed checklist item ' + (r.item.text || '')
+      history.value = remember(history.value, label.trim(), { kind: 'check', cardId, index: r.index, item: r.item } as UndoRecord)
+      board.value = r.board
+      say(label.trim() + ': Alt+Z undoes it')
+    },
+    addColumn: (title: string) => {
+      const r = addColumn(board.value, title)
+      setBoard(r.board)
+      return r.column
+    },
+    renameColumn: (id: string, title: string) => setBoard(renameColumn(board.value, id, title)),
+    removeColumn: (id: string) => {
+      const r = removeColumn(board.value, id)
+      if (!r) {
+        say('The board keeps at least one column')
+        return
+      }
+      const label = 'Removed column ' + (r.column.title || '') + (r.cards.length ? ' and its ' + r.cards.length + ' edit(s)' : '')
+      history.value = remember(history.value, label, { kind: 'column', index: r.index, column: r.column, cards: r.cards } as UndoRecord)
+      board.value = r.board
+      say(label + ': Alt+Z undoes it')
+    }
   }
 
   // ── copy: the one primary action ─────────────────────────────────────────
@@ -528,6 +695,10 @@ export function useWorkspace() {
     insertFromLibrary,
     insertFromMessage,
     deleteLibraryItem,
+    pastePoints,
+    // the edits board
+    board,
+    boardOps,
     // undo, copy
     canUndo,
     nextUndo,
