@@ -4,3 +4,4 @@ dist/
 .output/
 .DS_Store
 Thumbs.db
+src-tauri/target/
