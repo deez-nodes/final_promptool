@@ -9,11 +9,11 @@ export default defineNuxtConfig({
   ],
   app: {
     head: {
-      title: 'RevX // Smart Contract IDE & PrompTool',
+      title: 'prompTOR',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'RevX Browser-Based IDE for Polkadot Rust Smart Contracts & PrompTool Prompt Engineering Studio' }
+        { name: 'description', content: 'prompTOR prompt engineering studio' }
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -29,5 +29,10 @@ export default defineNuxtConfig({
     routeRules: {
       '/**': { cors: true }
     }
+  },
+  // The studio lives at `/` only; legacy paths redirect there.
+  routeRules: {
+    '/editor': { redirect: '/' },
+    '/promptool': { redirect: '/' }
   }
 })

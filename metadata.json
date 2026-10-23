@@ -1,6 +1,6 @@
 {
-  "name": "Remix promptool",
-  "description": "Can I see the preview on free tier?",
+  "name": "prompTOR",
+  "description": "prompTOR prompt engineering studio",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

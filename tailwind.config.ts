@@ -30,17 +30,7 @@ export default {
         amber: '#ffb84d',
         text: '#dfe6f0',
         muted: '#54607a',
-        muted2: '#808ea8',
-        revx: {
-          pink: '#e6007a', // Polkadot pink
-          purple: '#6d3aee',
-          cyan: '#00e5ff',
-          dark: '#0b0c10',
-          panel: '#12141c',
-          card: '#181b26',
-          border: '#232736',
-          accent: '#e6007a'
-        }
+        muted2: '#808ea8'
       },
       fontFamily: {
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
