@@ -2,7 +2,7 @@ import type { EffectScope } from 'vue'
 
 /**
  * Layout preferences, stored under their own key so that clearing or corrupting
- * them never touches prompt data (`promptool_v1`), and vice versa.
+ * them never touches workspace data (`promptor:workspace:v1`), and vice versa.
  * Defaults only for now; Phase 2 (resizable / collapsible panes, sounds, timer) consumes them.
  */
 export const LAYOUT_PREFS_KEY = 'promptool:layout'

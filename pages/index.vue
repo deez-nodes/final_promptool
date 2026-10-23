@@ -4,7 +4,7 @@
       <StudioSidebar />
     </template>
 
-    <StudioEditor />
+    <SectionList />
 
     <template #board>
       <StudioKanbanPane />
@@ -14,13 +14,8 @@
 
 <script setup lang="ts">
 // The page fills the layout's named slots itself, so the automatic layout is off.
+// The workspace loads in app.vue (useWorkspace().initWorkspace on mount).
 definePageMeta({ layout: false })
 
 useHead({ title: 'prompTOR' })
-
-const promptStore = usePromptStore()
-
-onMounted(() => {
-  promptStore.initStore()
-})
 </script>

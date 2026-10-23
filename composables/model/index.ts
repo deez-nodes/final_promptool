@@ -2,7 +2,7 @@
 // Implements DECIDED.md "What it is" L7-L15 and L17, Layout L23-L24 and L28,
 // "Colour and type" L34-L42. See each module's header for the exact lines.
 //
-// Names avoid the auto-imports composables/usePromptStore.ts already exports (newSection,
+// Names were chosen to avoid clashing with the old store's auto-imports (newSection,
 // cloneSection, toXml, newId, slugTag …), because Nuxt also auto-imports this index file.
 
 export * from './types'

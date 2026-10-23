@@ -1,0 +1,120 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.docHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--c-pane-line);
+}
+
+.docTitle {
+  margin: 0;
+  font-size: var(--fs-h2);
+  font-weight: var(--t-h1-weight);
+  color: var(--c-app-fg);
+}
+
+.meta {
+  font-size: var(--fs-small);
+  color: var(--t-fg-3);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--t-fg-2);
+}
+
+.add {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px dashed var(--c-control-line);
+  border-radius: var(--radius-2);
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.label {
+  flex-shrink: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--t-fg-2);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-body);
+}
+.name::placeholder { color: var(--t-fg-3); }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-left: 4px solid var(--hue);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  cursor: pointer;
+}
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--hue);
+  background: color-mix(in oklch, var(--t-bg) var(--t-hue-mix), var(--hue));
+}
+
+.chipMeaning {
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.chipTitle {
+  font-size: var(--fs-small);
+  color: var(--t-fg-2);
+}
+
+.help {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--t-fg-3);
+}
+
+.kbd {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--c-kbd-line);
+  border-radius: var(--radius-1);
+  background: var(--c-kbd-bg);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  font-weight: 400;
+}

@@ -1,74 +1,87 @@
-.head {
-  flex-shrink: 0;
+.root {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-2);
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
   border-bottom: 1px solid var(--c-pane-line);
 }
 
-.headSplit {
-  border-top: 1px solid var(--c-pane-line);
+.grow {
+  flex: 1;
+  border-bottom: none;
 }
 
-.headTitle {
+/* Pane headings stay small and grey: section titles in the editor are the clear headings (DZ-46). */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
   font-size: var(--fs-small);
   font-weight: 600;
   color: var(--c-pane-head-fg);
 }
 
-.select {
-  padding: 0 var(--space-1);
-  border: 1px solid var(--c-control-line);
-  border-radius: var(--radius-1);
-  background: var(--c-control-bg);
-  color: var(--c-control-fg);
+.count {
+  font-family: var(--font-mono);
   font-size: var(--fs-small);
-  cursor: pointer;
+  font-weight: 400;
+  color: var(--c-count-fg);
 }
 
-.selectNarrow {
-  max-width: 8rem;
+.list,
+.sublist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.searchRow {
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--c-pane-line);
+.sublist {
+  padding-left: var(--space-6);
 }
 
-.search {
-  width: 100%;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--c-control-line);
-  border-radius: var(--radius-1);
-  background: var(--c-control-bg);
-  color: var(--c-control-fg);
-  font-size: var(--fs-small);
-}
-.search::placeholder { color: var(--t-fg-3); }
-
-.list {
-  overflow-y: auto;
-  min-height: 0;
+.item {
+  display: flex;
+  align-items: stretch;
+  border-left: 3px solid var(--hue, transparent);
 }
 
-.grow {
-  flex: 1;
-}
-
-.library {
-  height: 14rem;
-  flex-shrink: 0;
+.message > .item {
+  border-left: none;
 }
 
 .row {
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--c-pane-line);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: var(--space-1) var(--space-3);
+  border: none;
   border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--c-app-fg);
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  text-align: left;
   cursor: pointer;
 }
 .row:hover { background: var(--c-control-hover-bg); }
+
+.outlineRow {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
 
 .rowActive,
 .rowActive:hover {
@@ -76,66 +89,50 @@
   border-left-color: var(--c-row-active-mark);
 }
 
-.rowTop {
+.rowTitle {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.rowName {
-  flex: 1;
-  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--fs-small);
   font-weight: 600;
 }
 
-.badge,
-.count {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-small);
-  color: var(--c-count-fg);
-}
-
-.rowTags {
-  display: flex;
-  gap: var(--space-2);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.tag {
-  font-family: var(--font-mono);
-  font-size: var(--fs-small);
-  color: var(--c-tag-fg);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.from {
-  flex: 1;
-  min-width: 0;
+.snippet {
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--fs-small);
   color: var(--t-fg-3);
 }
 
-.snippet {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--fs-small);
-  color: var(--t-fg-2);
+.state {
+  flex-shrink: 0;
+  color: var(--t-fg-3);
 }
 
+.toggle,
+.remove {
+  flex-shrink: 0;
+  width: 1.75rem;
+  border: none;
+  background: transparent;
+  color: var(--t-fg-3);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+.toggle:hover,
+.remove:hover {
+  background: var(--c-control-hover-bg);
+  color: var(--c-app-fg);
+}
+.remove:hover { color: var(--t-danger); }
+
 .empty {
-  padding: var(--space-4);
-  text-align: center;
+  margin: 0;
+  padding: var(--space-1) var(--space-3) var(--space-3);
   font-size: var(--fs-small);
   color: var(--t-fg-3);
 }

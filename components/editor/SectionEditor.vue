@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<{
   modelValue: string
   /** The section's hue role: role|context|goal|task|constraints|output|custom. */
   role?: string
-  /** Vim keybindings; the host owns the toggle (see useVim.ts). */
+  /** Vim keybindings; the host owns the toggle (see composables/useVim.ts). */
   vim?: boolean
 }>(), { role: 'custom', vim: false })
 

@@ -17,7 +17,11 @@ export interface Section {
   id: string
   /** Becomes the XML tag through `tagOf`. */
   title: string
-  type: SectionType
+  /**
+   * The section's type, which sets its colour (DZ-57). null = untyped: a section added by
+   * typed name alone has no type, no hue and no semantic styling until a type is chosen.
+   */
+  type: SectionType | null
   /**
    * What the editor holds: lead text, then points, as Markdown, verbatim.
    * A list item (`- `, `* `, `+ `, `1. `, `1) `) or a quote line (`> `) starts a point;

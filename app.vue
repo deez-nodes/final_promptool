@@ -8,14 +8,14 @@
 </template>
 
 <script setup lang="ts">
-// Ensure prompt store is ready on app mount
-const promptStore = usePromptStore()
+// The workspace store (the record's model) loads from storage on mount.
+const workspace = useWorkspace()
 const layoutPrefs = useLayoutPrefs()
 const { loadTheme } = useTheme()
 
 // Flush pending debounced writes whenever the user might be leaving.
 const flushAll = () => {
-  promptStore.flushSave()
+  workspace.flushSave()
   layoutPrefs.flushPrefs()
 }
 const onVisibility = () => {
@@ -28,7 +28,7 @@ useRouter().beforeEach(() => {
 
 onMounted(() => {
   loadTheme()
-  promptStore.initStore()
+  workspace.initWorkspace()
   window.addEventListener('blur', flushAll)
   window.addEventListener('pagehide', flushAll)
   document.addEventListener('visibilitychange', onVisibility)

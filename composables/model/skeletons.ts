@@ -68,8 +68,8 @@ const KNOWN: ReadonlyMap<string, SectionType> = new Map(
 
 export const isSectionType = (v: unknown): v is SectionType => typeof v === 'string' && (TYPES as readonly string[]).includes(v)
 
-/** The type for a section added by typed name: a skeleton title keeps its type, anything else is "what to do". */
-export const typeForTitle = (title: string): SectionType => KNOWN.get(tagOf(title)) ?? 'todo'
+/** The skeleton type a title names (Task -> todo, Corrections -> limits …), or null when it names none. */
+export const typeForTitle = (title: string): SectionType | null => KNOWN.get(tagOf(title)) ?? null
 
 /** What the UI needs to colour a card. */
 export interface TypeColour {
@@ -78,15 +78,16 @@ export interface TypeColour {
   meaning: string
 }
 
-export const roleOf = (section: Pick<Section, 'type'>): TypeColour => {
-  const type = isSectionType(section.type) ? section.type : 'todo'
-  return { type, hue: TYPE_HUE[type], meaning: TYPE_MEANING[type] }
+/** The colour of a typed section, or null for an untyped one (neutral, no hue). */
+export const roleOf = (section: Pick<Section, 'type'>): TypeColour | null => {
+  const type = section.type
+  return isSectionType(type) ? { type, hue: TYPE_HUE[type], meaning: TYPE_MEANING[type] } : null
 }
 
-export const hueOf = (section: Pick<Section, 'type'>): Hue => roleOf(section).hue
+export const hueOf = (section: Pick<Section, 'type'>): Hue | null => roleOf(section)?.hue ?? null
 
-/** A new section. With no type, the type comes from the title (typed-name add); a chip passes its type. */
-export const makeSection = (title: string, type: SectionType = typeForTitle(title), body = ''): Section => ({
+/** A new section. A chip or skeleton passes its type; a typed-name add passes none and stays untyped. */
+export const makeSection = (title: string, type: SectionType | null = null, body = ''): Section => ({
   id: makeId(),
   title,
   type,

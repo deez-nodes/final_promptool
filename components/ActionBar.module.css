@@ -1,0 +1,67 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--c-control-line);
+  border-radius: var(--radius-1);
+  background: var(--c-control-bg);
+  color: var(--c-control-fg);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) {
+  background: var(--c-control-hover-bg);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The one inverted action colour. */
+.primary,
+.primary:hover:not(:disabled) {
+  background: var(--c-action-bg);
+  color: var(--c-action-fg);
+  border-color: var(--c-action-bg);
+  font-weight: 700;
+}
+
+.on,
+.on:hover:not(:disabled) {
+  background: var(--c-row-active-bg);
+  border-color: var(--c-control-fg);
+}
+
+.kbd {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--c-kbd-line);
+  border-radius: var(--radius-1);
+  background: var(--c-kbd-bg);
+  color: var(--t-fg-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  font-weight: 400;
+}
+
+.kbdPrimary {
+  border-color: var(--c-action-fg);
+  background: transparent;
+  color: var(--c-action-fg);
+}
+
+.notice {
+  margin-left: var(--space-2);
+  font-size: var(--fs-small);
+  color: var(--t-fg-2);
+  white-space: nowrap;
+}

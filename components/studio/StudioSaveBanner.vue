@@ -36,8 +36,7 @@
 </template>
 
 <script setup lang="ts">
-const promptStore = usePromptStore()
-const persist = promptStore.persist
+const persist = useWorkspace().persist
 const dismissedBackup = ref(false)
 
 const showFailure = computed(() => persist.value.status === 'failed')

@@ -2,7 +2,7 @@
   <div id="studio-shell" :class="$style.shell">
     <Navbar />
 
-    <!-- Studio shell: sidebar | editor | board. No preview pane: output stays hidden until asked for. -->
+    <!-- Studio shell: sidebar | sections | board. No preview pane: output stays hidden until asked for. -->
     <div :class="$style.body">
       <aside id="sidebar" :class="$style.sidebar">
         <slot name="sidebar" />
@@ -15,8 +15,6 @@
       <aside id="board-pane" :class="$style.board">
         <slot name="board" />
       </aside>
-
-      <TermBankModal />
     </div>
   </div>
 </template>

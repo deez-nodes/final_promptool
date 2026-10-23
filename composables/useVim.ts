@@ -3,7 +3,8 @@
  *
  * One shared, reactive flag for the whole app. The layout mounts one button bound to
  * `enabled` / `toggle`, calls `bindHotkey()` once in its setup, and passes `enabled`
- * to every <EditorSectionEditor :vim="...">. Nothing is persisted.
+ * to every <EditorSectionEditor :vim="...">. Nothing is persisted. (Moved from
+ * components/editor/ in D4a: Nuxt registered it there as a component.)
  */
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useState } from '#imports'

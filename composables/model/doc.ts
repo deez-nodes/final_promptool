@@ -7,7 +7,7 @@
 // immutable: every function returns a new Doc and leaves its input alone. Destructive ones
 // (remove, merge, clear) are marked; the caller records an undo snapshot first (see undo.ts).
 
-import { isSectionType, makeDoc, typeForTitle } from './skeletons'
+import { isSectionType, makeDoc } from './skeletons'
 import { makeId, type Doc, type DocKind, type LibraryItem, type Section, type Workspace } from './types'
 
 const at = <T>(list: readonly T[], i: number | undefined, item: T): T[] => {
@@ -63,14 +63,14 @@ export const clearSection = (doc: Doc, id: string): Doc => updateSection(doc, id
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null
 const str = (v: unknown, d = ''): string => (typeof v === 'string' ? v : d)
 
-/** Read a section from untrusted JSON. Missing pieces are filled; an unknown type comes from the title. */
+/** Read a section from untrusted JSON. Missing pieces are filled; a missing or unknown type reads as untyped. */
 export function readSection(v: unknown): Section | null {
   if (!isObj(v)) return null
   const title = str(v.title, 'Section')
   return {
     id: str(v.id) || makeId(),
     title,
-    type: isSectionType(v.type) ? v.type : typeForTitle(title),
+    type: isSectionType(v.type) ? v.type : null,
     body: str(v.body),
     included: v.included !== false,
     folded: v.folded === true,
