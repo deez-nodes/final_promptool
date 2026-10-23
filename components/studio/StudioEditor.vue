@@ -54,7 +54,7 @@
             <input
               :value="promptStore.store.value.activeVariables?.[varKey] || ''"
               @input="promptStore.setPromptVariable(varKey, ($event.target as HTMLInputElement).value)"
-              class="flex-1 bg-transparent border-none text-text text-xs font-mono outline-none px-1 py-0.5 placeholder:text-muted/50"
+              class="flex-1 bg-transparent border-none text-text text-xs font-mono outline-none px-1 py-0.5 placeholder:text-muted"
               :placeholder="`Value for ${varKey}...`"
               spellcheck="false"
             />
@@ -180,7 +180,7 @@
             :value="s.body"
             @input="handleBodyInput(s.id, $event)"
             @keydown="handleTextareaKeydown(s.id, $event)"
-            class="w-full min-h-[90px] bg-transparent border-none text-text font-mono text-xs p-1 outline-none leading-relaxed resize-y placeholder:text-muted/60 focus:bg-surface/30 rounded"
+            class="w-full min-h-[90px] bg-transparent border-none text-text font-mono text-xs p-1 outline-none leading-relaxed resize-y placeholder:text-muted focus:bg-surface/30 rounded"
             placeholder="Write prompt instructions, rules, XML schemas, or dynamic variables like {{my_var}} here... (Press Tab for autocomplete)"
             spellcheck="false"
           ></textarea>
