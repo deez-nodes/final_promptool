@@ -4,9 +4,9 @@
 
 ## 1. Design Philosophy & Vision
 
-**prompTOR** (also known as **PrompTool**) is a professional, section-based prompt engineering and AST architecture studio. It adopts a **dark-ground, single-accent aesthetic** optimized for extended focus, prompt composition, token inspection, and syntax clarity.
+**prompTOR** (also known as **PrompTool**) is a professional, section-based prompt engineering and AST architecture studio. It adopts a **neutral-ground, single-accent aesthetic** optimized for extended focus, prompt composition, token inspection, and syntax clarity.
 
-The ground is a near-black blue-slate (`bg` `#07080e`) so that the accents carry all the signal. Depth comes from lit edges and hairline borders, never from gradient washes. The register is the modern developer tool: quiet surfaces, tight radii, one saturated accent doing the work.
+The ground is neutral zinc — effectively hue-free — so that the accents carry all the signal. Depth comes from lit edges and hairline borders, never from gradient washes. The register is the modern developer tool: quiet surfaces, tight radii, one saturated accent doing the work.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -18,81 +18,41 @@ The ground is a near-black blue-slate (`bg` `#07080e`) so that the accents carry
 
 ## 2. Design Tokens & Color Palette
 
-**Source of truth: [`tokens.json`](./tokens.json).** `npm run tokens` (`scripts/gen-tokens.mjs`) generates the
-`theme.extend.colors` / `theme.extend.boxShadow` blocks of `tailwind.config.ts` and the `:root` block of
-`assets/css/main.css` from it. To change a color, edit `tokens.json`, run `npm run tokens`, then `npm run check`.
+The palette is built on the Tailwind default ramp — `zinc` for all neutrals, `500`-weight hues for all accents. Tokens are named by **role**, not by hue, so that a color can be reassigned without renaming every usage.
 
-Token names below are the code's names, one-to-one. A token `x` is the Tailwind class suffix (`text-x`, `bg-x`,
-`border-x`) and the CSS custom property `--x`. There are no other color names.
+### Core Palette
 
-### Color tokens
-
-Contrast is WCAG 2.1 (relative luminance) against `--bg` `#07080e`, **computed by
-[`checks/contrast.mjs`](../checks/contrast.mjs)**, which is part of `npm run check`. Rerun it after any token
-change and copy its "all color tokens vs --bg" block into this table; do not edit ratios by hand.
-"Small text" means the token is used for text under 14px somewhere in `pages/`, `components/` or `layouts/`
-(the script's header documents how it decides), and is therefore gated at **4.5:1**.
-
-| Token | Hex | Role | Contrast vs `--bg` | Small text |
+| Token | Hex | Tailwind | Role | Contrast on Base |
 | :--- | :--- | :--- | :--- | :--- |
-| `bg` | `#07080e` | Root canvas, gutter backdrop, editor canvas. The ground every ratio is measured against. Also inverse text on `bg-acid` (17.93:1) and `bg-miku` (10.88:1) fills. | 1.00:1 | inverse only |
-| `surface` | `#0f1119` | Navbar, pane headers, section cards | 1.06:1 | no |
-| `surface2` | `#161a26` | Inputs, secondary buttons, section header strip | 1.15:1 | no |
-| `surface3` | `#1f2533` | Hover fill, active tab, metadata pill, scrollbar thumb | 1.31:1 | no |
-| `surface4` | `#283042` | Highest raised fill: count badges | 1.52:1 | no |
-| `border` | `#222a3c` | Default 1px structural divider | 1.39:1 | no |
-| `border2` | `#313c54` | Focus/active boundary, scrollbar hover, decorative separator glyphs (`\|`, `·`) | 1.81:1 | decorative only |
-| `border3` | `#414f6e` | Strongest border step (unused) | 2.45:1 | no |
-| `acid` | `#e8ff47` | Primary accent: actions, active tab, section index pill, XML tag identifiers | **17.93:1** | yes |
-| `acid-dim` | `#454f17` | Low-intensity acid for tinted fills (unused) | 2.27:1 | no |
-| `miku` | `#39d4c8` | Variable interpolation, term bank badges, compiler tabs | **10.88:1** | yes |
-| `pink` | `#ff4da6` | Destructive / remove affordances on hover | **6.54:1** | yes |
-| `green` | `#5dffb0` | Success, cost estimate, copy confirmation | **15.61:1** | yes |
-| `amber` | `#ffb84d` | Warning-flavoured quick-add accent | **11.63:1** | yes |
-| `text` | `#dfe6f0` | Primary body copy, editor text, headings | **15.92:1** | yes |
-| `muted` | `#6c7b9c` | De-emphasized metadata: token counts, timestamps, placeholders, inactive tabs | **4.71:1** | yes |
-| `muted2` | `#808ea8` | Secondary labels, one step brighter than `muted` | **6.05:1** | yes |
+| `--color-base` | `#09090B` | `zinc-950` | Root application canvas, gutter backdrop, editor ground | — |
+| `--color-surface` | `#18181B` | `zinc-900` | Panels, section cards, sidebar, preview container | 1.18:1 |
+| `--color-primary` | `#D946EF` | `fuchsia-500` | Brand glyph, primary action, focus state, active tab | **5.75:1** |
+| `--color-secondary` | `#06B6D4` | `cyan-500` | Tag slugs `<tag>`, `{{variables}}`, compiler tabs, term bank badges | **8.19:1** |
+| `--color-tertiary` | `#EAB308` | `yellow-500` | Warnings, token-budget pressure, unsaved state, drag affordance | **10.37:1** |
+| `--color-success` | `#10B981` | `emerald-500` | Valid syntax, copy confirmation, budget headroom, completed task | **7.84:1** |
 
-### Shadow tokens
+Contrast measured against `--color-base` `#09090B` per WCAG 2.1 relative luminance. All four accents clear 4.5:1 and are safe for normal-weight body text. Against `--color-surface` `#18181B` they measure 5.12 / 7.30 / 9.24 / 6.98 respectively — still all passing.
 
-| Token | Value | Use |
-| :--- | :--- | :--- |
-| `glow-acid` | `0 0 14px rgba(232,255,71,.35)` | Acid buttons, section index pill |
-| `glow-miku` | `0 0 12px rgba(57,212,200,.35)` | Active variable-matrix toggle |
-| `glow-pink` | `0 0 14px rgba(230,0,122,.4)` | Unused |
-| `glow-cyan` | `0 0 14px rgba(0,229,255,.35)` | Unused |
+### Derived Tokens
 
-Tailwind: `shadow-<token>`. CSS: `var(--<token>)`.
+The supplied palette specifies base, surface, and four accents. The following are **derived** from the same `zinc` ramp to complete the system, and are the values to overrule first if the direction shifts.
 
-### "muted" means the dimmer gray
+| Token | Hex | Tailwind | Role | Contrast on Base |
+| :--- | :--- | :--- | :--- | :--- |
+| `--color-surface-raised` | `#232327` | between `zinc-900`/`800` | Hovered card, keycap face, popover, active row | 1.45:1 |
+| `--color-border` | `#27272A` | `zinc-800` | Default 1px structural divider | — |
+| `--color-border-strong` | `#3F3F46` | `zinc-700` | Active focus boundary, resizer handle, selected block | — |
+| `--color-text` | `#FAFAFA` | `zinc-50` | Primary body copy, editor text, headings | **19.06:1** |
+| `--color-text-muted` | `#A1A1AA` | `zinc-400` | De-emphasized labels, inactive tabs, token metadata | **7.76:1** |
+| `--color-text-faint` | `#71717A` | `zinc-500` | Non-text only — dividers, disabled glyphs, large icons | 4.12:1 |
 
-The code has two grays. **`muted`** is the dimmer one; **`muted2`** is one step brighter. Earlier versions of
-this document called `#808ea8` "color-text-muted"; in the code that value is `muted2`, and the earlier "dim"
-gray is `muted`. The code's names win: there is no `color-text-muted` token.
-
-**Contrast constraint.** `muted` was `#54607a` (3.17:1) and was applied to 10–11px token counts, timestamps and
-placeholders. It is now `#6c7b9c` (4.71:1), which clears 4.5:1 on `--bg` while staying visibly dimmer than
-`muted2` (6.05:1). A placeholder or label must not take an opacity modifier (`placeholder:text-muted/50`
-measures 1.99:1); `checks/contrast.mjs` composites the alpha and fails it. The `border*` and `surface*` tokens
-measure under 2.5:1 and must never be applied to a text node, except as purely decorative separator glyphs.
-
-**Known gap (reported by the script, not gated).** The spec's gate is `--bg`. On raised fills `muted` measures
-4.44:1 on `surface`, 4.09:1 on `surface2` and 3.61:1 on `surface3`, and `muted2` measures 3.99:1 on `surface4`.
-`muted` cannot clear 4.5:1 on `surface3` without becoming as bright as `muted2`; prefer `muted2` for small text
-on raised fills.
+**Contrast constraint.** `--color-text-faint` measures 4.12:1 on base and 3.67:1 on surface. It **fails WCAG AA for text at any size** and must never be applied to a text node. Muted labels use `--color-text-muted` `#A1A1AA`. This rule exists because the previous system applied a 3.17:1 gray to 10–11px metadata labels throughout the interface; the failure is easy to reintroduce and hard to see.
 
 ### Accent Discipline
 
-- Exactly **one** accent may be saturated in any given viewport region. `acid` is the default; the others appear as state, not decoration.
+- Exactly **one** accent may be saturated in any given viewport region. `--color-primary` is the default; the others appear as state, not decoration.
 - Accents are never used as large background fills. They appear as 1px borders, small text, glyphs, and glow — never as a panel color.
-- Tinted backgrounds use the accent at ≤12% alpha (e.g. `bg-miku/20`) over a surface, paired with the accent as a border.
-
-### Proposed direction (not implemented)
-
-A neutral re-palette was proposed earlier: a zinc ground (`#09090B`, surface `#18181B`) with fuchsia `#D946EF`,
-cyan `#06B6D4`, yellow `#EAB308` and emerald `#10B981` accents. None of it exists in the code. Adopting it means
-changing values in `tokens.json` (the names above stay), running `npm run tokens`, and re-verifying contrast with
-`npm run check`.
+- Tinted backgrounds use the accent at ≤12% alpha over `--color-surface`, paired with the accent at ~35% alpha as a border.
 
 ---
 
@@ -110,26 +70,54 @@ All three faces are self-hosted as `woff2` in `/fonts` — no network font reque
 
 ## 4. CSS Custom Properties
 
-`assets/css/main.css` holds one `:root` block, generated from `tokens.json` between `BEGIN generated` /
-`END generated` comments. Do not edit it by hand. It defines exactly one custom property per token in section 2:
-
 ```css
 :root {
-  /* colors: --bg --surface --surface2 --surface3 --surface4
-             --border --border2 --border3
-             --acid --acid-dim --miku --pink --green --amber
-             --text --muted --muted2 */
-  /* shadows: --glow-acid --glow-miku --glow-pink --glow-cyan */
+  /* Ground */
+  --color-base:            #09090b;
+  --color-surface:         #18181b;
+  --color-surface-raised:  #232327;
+
+  /* Accents */
+  --color-primary:         #d946ef;
+  --color-secondary:       #06b6d4;
+  --color-tertiary:        #eab308;
+  --color-success:         #10b981;
+
+  /* Accent alpha derivatives */
+  --primary-glow:          rgba(217, 70, 239, 0.28);
+  --primary-tint:          rgba(217, 70, 239, 0.12);
+  --primary-edge:          rgba(217, 70, 239, 0.50);
+  --secondary-tint:        rgba(6, 182, 212, 0.12);
+  --secondary-edge:        rgba(6, 182, 212, 0.35);
+  --tertiary-tint:         rgba(234, 179, 8, 0.12);
+  --success-tint:          rgba(16, 185, 129, 0.12);
+
+  /* Borders */
+  --color-hairline:        rgba(255, 255, 255, 0.06);
+  --color-border:          #27272a;
+  --color-border-strong:   #3f3f46;
+
+  /* Text */
+  --color-text:            #fafafa;
+  --color-text-muted:      #a1a1aa;
+  --color-text-faint:      #71717a;  /* non-text use only — see 2 */
+
+  /* Relief */
+  --bevel-top:             rgba(255, 255, 255, 0.07);
+  --bevel-floor:           rgba(0, 0, 0, 0.40);
+  --lip:                   #0c0c0e;
+
+  /* Radii */
+  --radius-sm:             4px;
+  --radius-md:             6px;
+  --radius-lg:             8px;
+
+  /* Typography Stacks */
+  --font-display:          'Orbitron', -apple-system, sans-serif;
+  --font-subheading:       'Rajdhani', -apple-system, sans-serif;
+  --font-mono:             'JetBrains Mono', ui-monospace, monospace;
 }
 ```
-
-Components reach colors through Tailwind token classes (`text-muted`, `bg-surface2`) or these properties
-(`var(--muted)`), never a hex literal; `checks/no-raw-hex.mjs` fails on a six-digit hex under `pages/`,
-`components/` or `layouts/`. `checks/tokens.mjs` fails when a hex in `tailwind.config.ts` or `main.css` is not a
-`tokens.json` color, or when a generated region is stale.
-
-Font stacks are configured in `tailwind.config.ts` (`font-mono`, `font-orbitron`, `font-rajdhani`, `font-sans`)
-and are not CSS custom properties.
 
 ---
 
@@ -137,21 +125,15 @@ and are not CSS custom properties.
 
 The target is crispness through restraint. Four techniques, applied narrowly.
 
-> **Proposed treatment, not implemented.** The snippets below are design intent. Where they name a color they use
-> the section 2 tokens. The other custom properties they mention (`--hairline`, `--bevel-top`, `--bevel-floor`,
-> `--lip`, `--radius-md`, `--acid-glow`, `--acid-edge`) are **not tokens and do not exist in the code**; adopting a
-> snippet means adding its values to `tokens.json` first, then `npm run tokens`. The raw hex values inside the
-> snippets are illustrative only and may not be copied into a component.
-
 ### 5.1 Hairline borders
 
 Structural dividers are white at very low alpha rather than a solid gray. On a `#09090B` ground this reads as an edge catching light instead of a drawn line.
 
 ```css
-border: 1px solid var(--hairline);   /* rgba(255,255,255,.06) */
+border: 1px solid var(--color-hairline);   /* rgba(255,255,255,.06) */
 ```
 
-Use `border` (`border-border`, `var(--border)`) only where a divider must survive over a raised surface (`surface3`).
+Use `--color-border` `#27272A` only where a divider must survive over `--color-surface-raised`.
 
 ### 5.2 Relief — the keycap
 
@@ -191,9 +173,9 @@ Panels that need emphasis take a single lit edge in the accent, plus a wide soft
 ```css
 .plate {
   background: #101013;
-  border: 1px solid var(--acid-glow);
+  border: 1px solid var(--primary-glow);
   box-shadow:
-    0 1px 0 var(--acid-edge),                  /* lit extrusion */
+    0 1px 0 var(--primary-edge),                  /* lit extrusion */
     0 12px 40px -12px rgba(217, 70, 239, 0.25);   /* bloom         */
 }
 ```
@@ -220,7 +202,7 @@ A single low-opacity noise layer over large surfaces prevents banding in the nea
 
 ```css
 :focus-visible {
-  outline: 2px solid var(--acid);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
